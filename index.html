@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Escola Aguaí — Sistema de Gestão</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;--bg2:#f8f7f4;--bg3:#f1efe8;
+  --border:#e8e6df;--border2:#d4d1c8;
+  --text:#1a1917;--text2:#5f5e5a;--text3:#8c8a85;
+  --info-bg:#e6f1fb;--info-text:#185fa5;--info-border:#b5d4f4;
+  --danger-bg:#fcebeb;--danger-text:#a32d2d;
+  --warn-bg:#faeeda;--warn-text:#854f0b;
+  --radius:8px;--radius-lg:10px;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+}
+body{font-family:var(--font);color:var(--text);background:var(--bg3);font-size:13px}
+.app{display:flex;min-height:100vh}
+.sidebar{width:200px;flex-shrink:0;background:var(--bg);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;height:100vh;overflow-y:auto}
+.logo{padding:16px 16px 12px;border-bottom:1px solid var(--border)}
+.logo-name{font-size:15px;font-weight:600}
+.logo-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.nav{flex:1;padding:8px 0}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 16px;cursor:pointer;font-size:13px;color:var(--text2);transition:background 0.12s}
+.nav-item:hover{background:var(--bg2);color:var(--text)}
+.nav-item.active{background:var(--info-bg);color:var(--info-text);font-weight:500}
+.nav-item i{font-size:17px;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--danger-bg);color:var(--danger-text);font-size:10px;font-weight:600;padding:1px 6px;border-radius:10px}
+.main{flex:1;margin-left:200px;display:flex;flex-direction:column;min-height:100vh}
+.topbar{background:var(--bg);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:sticky;top:0;z-index:20}
+.sw{flex:1;position:relative;min-width:180px;max-width:340px}
+.sw i{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--text3)}
+.sw input{width:100%;padding:7px 12px 7px 32px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);font-size:13px;color:var(--text);outline:none;font-family:var(--font)}
+.sw input:focus{border-color:var(--info-border)}
+select{padding:7px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;color:var(--text);outline:none;cursor:pointer;font-family:var(--font)}
+.btn{padding:7px 12px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);font-size:12px;color:var(--text);cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:var(--font)}
+.btn:hover{background:var(--bg3)}
+.content{flex:1;padding:20px}
+.view{display:none}.view.active{display:block}
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.sc{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px}
+.sc.warn{background:var(--warn-bg)}.sc.danger{background:var(--danger-bg)}
+.sc-l{font-size:11px;color:var(--text2);margin-bottom:4px}
+.sc-v{font-size:24px;font-weight:500}.sc-s{font-size:11px;color:var(--text3);margin-top:3px}
+.card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:16px}
+.card-h{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-t{font-size:13px;font-weight:500}
+.card-c{font-size:12px;color:var(--text3)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{padding:8px 12px;text-align:left;font-size:10px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid var(--border);background:var(--bg2);white-space:nowrap}
+td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr.rl{cursor:pointer}tr.rl:hover td{background:var(--bg2)}
+.b{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500;white-space:nowrap}
+.b-ok{background:#eaf3de;color:#3b6d11}.b-nok{background:#fcebeb;color:#a32d2d}
+.b-none{background:#f1efe8;color:#5f5e5a}.b-info{background:#e6f1fb;color:#185fa5}
+.b-warn{background:#faeeda;color:#854f0b}.b-ativo{background:#e1f5ee;color:#0f6e56}
+.b-inativo{background:#f1efe8;color:#5f5e5a}
+.pill-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.pill{padding:4px 12px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid var(--border);background:var(--bg2);color:var(--text2)}
+.pill.ap{background:var(--info-bg);color:var(--info-text);border-color:var(--info-border)}
+.bars{display:flex;align-items:flex-end;gap:6px;height:100px}
+.bw{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.bar{width:100%;border-radius:3px 3px 0 0;min-height:3px}
+.bl{font-size:9px;color:var(--text3);text-align:center;line-height:1.2}
+.bv{font-size:10px;font-weight:500;color:var(--text2)}
+.dp{display:none;position:fixed;top:0;right:0;width:390px;height:100%;background:var(--bg);border-left:1px solid var(--border2);z-index:200;overflow-y:auto;padding:18px;box-shadow:-4px 0 20px rgba(0,0,0,0.08)}
+.dp.open{display:block}
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.15);z-index:199}
+.ov.open{display:block}
+.dav{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;background:var(--info-bg);color:var(--info-text);flex-shrink:0}
+.ds{margin-bottom:14px}
+.dst{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.dr{display:flex;gap:8px;margin-bottom:6px;font-size:12px}
+.dl{color:var(--text2);width:110px;flex-shrink:0}
+.dv{color:var(--text);word-break:break-all}
+.ai{display:flex;align-items:flex-start;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border)}
+.ai:last-child{border-bottom:none}
+.ad{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.bd-row{display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid var(--border)}
+.bd-row:last-child{border-bottom:none}
+.bdc{width:28px;height:28px;border-radius:50%;background:var(--info-bg);color:var(--info-text);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0}
+.tg{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.tc{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;cursor:pointer;transition:border-color 0.15s}
+.tc:hover{border-color:var(--border2)}
+.tab-row{display:flex;border-bottom:1px solid var(--border);margin-bottom:14px}
+.tab{padding:8px 14px;font-size:12px;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab.at{color:var(--info-text);border-bottom-color:var(--info-text);font-weight:500}
+.cg{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.cc{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:13px}
+.ch2{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.av2{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0}
+.cr{display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-top:1px solid var(--border);font-size:11px}
+.cr:first-child{border-top:none}
+.wa{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;background:#eaf3de;color:#3b6d11;border-radius:var(--radius);font-size:10px;font-weight:500;text-decoration:none}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:11px;color:var(--text2);margin-bottom:14px}
+.ld{width:10px;height:10px;border-radius:2px;flex-shrink:0;margin-top:1px}
+.chart-wrap{position:relative;width:100%;height:240px;margin-bottom:8px}
+.empty{color:var(--text3);font-size:13px;padding:24px;text-align:center}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="sidebar">
+  <div class="logo"><div class="logo-name">&#127807; Escola Aguaí</div><div class="logo-sub">Sistema de Gestão 2026</div></div>
+  <div class="nav">
+    <div class="nav-item active" onclick="showView('painel',this)"><i class="ti ti-layout-dashboard"></i>Painel</div>
+    <div class="nav-item" onclick="showView('alunos',this)"><i class="ti ti-users"></i>Alunos</div>
+    <div class="nav-item" onclick="showView('documentos',this)"><i class="ti ti-file-description"></i>Documentação<span class="nav-badge" id="docBadge">…</span></div>
+    <div class="nav-item" onclick="showView('aniversarios',this)"><i class="ti ti-cake"></i>Aniversários</div>
+    <div class="nav-item" onclick="showView('inclusao',this)"><i class="ti ti-heart-handshake"></i>Inclusão</div>
+    <div class="nav-item" onclick="showView('turmas',this)"><i class="ti ti-school"></i>Turmas</div>
+    <div class="nav-item" onclick="showView('metas',this)"><i class="ti ti-chart-line"></i>Metas</div>
+    <div class="nav-item" onclick="showView('contatos',this)"><i class="ti ti-address-book"></i>Contatos</div>
+    <div class="nav-item" onclick="showView('historico',this)"><i class="ti ti-chart-bar"></i>Histórico</div>
+    <div class="nav-item" onclick="showView('busca',this)"><i class="ti ti-filter"></i>Busca avançada</div>
+  </div>
+</div>
+<div class="main">
+  <div class="topbar">
+    <div class="sw"><i class="ti ti-search"></i><input type="text" id="gs" placeholder="Buscar aluno, bairro, email..." oninput="filterAlunos()"></div>
+    <select id="fE" onchange="filterAlunos()"><option value="">Todos os segmentos</option><option>Educação Infantil</option><option>Fundamental I</option><option>Fundamental II</option><option>Ensino Médio</option></select>
+    <select id="fS" onchange="filterAlunos()"><option value="">Qualquer status</option><option>Ativo</option><option>Inativo</option></select>
+    <button class="btn" onclick="exportCSV()"><i class="ti ti-download"></i>Exportar CSV</button>
+    <button class="btn" onclick="printList()"><i class="ti ti-printer"></i>Imprimir lista</button>
+  </div>
+  <div class="content">
+    <div class="view active" id="view-painel">
+      <div class="sg" id="sg"></div>
+      <div class="two">
+        <div class="card"><div class="card-h"><span class="card-t">Alunos por segmento</span></div><div style="padding:14px"><div class="bars" id="c1"></div></div></div>
+        <div class="card"><div class="card-h"><span class="card-t">Como conheceram a escola</span></div><div style="padding:14px"><div class="bars" id="c2"></div></div></div>
+      </div>
+      <div class="two">
+        <div class="card"><div class="card-h"><span class="card-t">Alertas críticos</span></div><div id="al"></div></div>
+        <div class="card"><div class="card-h"><span class="card-t">Aniversários este mês</span></div><div id="bl"></div></div>
+      </div>
+      <div class="card"><div class="card-h"><span class="card-t">Bairros de origem (top 10)</span></div><div style="padding:14px"><div class="bars" id="c3"></div></div></div>
+    </div>
+    <div class="view" id="view-alunos">
+      <div class="pill-row" id="pills"></div>
+      <div class="card">
+        <div class="card-h"><span class="card-t" id="aC">—</span><span class="card-c" id="aS"></span></div>
+        <div style="overflow-x:auto"><table><thead><tr><th>Nome</th><th>Ensino / Ano</th><th>Período</th><th>Nascimento</th><th>Tel. mãe</th><th>Status</th></tr></thead><tbody id="ab"></tbody></table></div>
+      </div>
+    </div>
+    <div class="view" id="view-documentos">
+      <div class="tab-row" id="dtabs">
+        <div class="tab at" onclick="dtTab('todos',this)">Todos com pendência</div>
+        <div class="tab" onclick="dtTab('ficha',this)">Sem ficha</div>
+        <div class="tab" onclick="dtTab('cont',this)">Sem contrato</div>
+        <div class="tab" onclick="dtTab('drive',this)">Drive incompleto</div>
+        <div class="tab" onclick="dtTab('img',this)">Sem dir. imagem</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+        <select id="dE" onchange="renderDocs()"><option value="">Todos os segmentos</option><option>Educação Infantil</option><option>Fundamental I</option><option>Fundamental II</option><option>Ensino Médio</option></select>
+        <button class="btn" onclick="printDocs()"><i class="ti ti-printer"></i>Imprimir</button>
+        <button class="btn" onclick="exportDocsCsv()"><i class="ti ti-download"></i>Exportar CSV</button>
+      </div>
+      <div class="card"><div class="card-h"><span class="card-t" id="dC">—</span></div>
+        <div style="overflow-x:auto"><table><thead><tr><th>Nome</th><th>Segmento</th><th>Ano</th><th>Ficha</th><th>Drive</th><th>Contrato</th><th>Dir. Imagem</th><th>Sec. Digital</th><th>Tel. mãe</th></tr></thead><tbody id="dBody"></tbody></table></div>
+      </div>
+    </div>
+    <div class="view" id="view-aniversarios">
+      <div class="pill-row" id="mps"></div>
+      <div class="card"><div class="card-h"><span class="card-t" id="bC">—</span></div>
+        <div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Nome</th><th>Ensino</th><th>Ano</th><th>Tel. contato</th></tr></thead><tbody id="bb"></tbody></table></div>
+      </div>
+    </div>
+    <div class="view" id="view-inclusao">
+      <div class="card"><div class="card-h"><span class="card-t">Alunos em acompanhamento de inclusão</span><span class="card-c" id="iC">—</span></div>
+        <div style="overflow-x:auto"><table><thead><tr><th>Nome</th><th>Ensino</th><th>Série</th><th>Laudo</th><th>Especificação</th></tr></thead><tbody id="ib"></tbody></table></div>
+      </div>
+    </div>
+    <div class="view" id="view-turmas"><div class="tg" id="tg"></div></div>
+    <div class="view" id="view-metas">
+      <div class="sg" id="ms"></div>
+      <div class="two">
+        <div class="card"><div class="card-h"><span class="card-t">Matrículas 2025</span></div><div style="padding:14px"><div class="bars" id="mc25"></div><div class="legend"><span style="display:flex;align-items:center;gap:5px"><span class="ld" style="background:#CECBF6"></span>Expectativa</span><span style="display:flex;align-items:center;gap:5px"><span class="ld" style="background:#9FE1CB"></span>Realizado</span></div></div></div>
+        <div class="card"><div class="card-h"><span class="card-t">Matrículas 2026</span></div><div style="padding:14px"><div class="bars" id="mc26"></div><div class="legend"><span style="display:flex;align-items:center;gap:5px"><span class="ld" style="background:#CECBF6"></span>Expectativa</span><span style="display:flex;align-items:center;gap:5px"><span class="ld" style="background:#9FE1CB"></span>Realizado</span></div></div></div>
+      </div>
+      <div class="card"><div class="card-h"><span class="card-t">Detalhamento 2026</span></div>
+        <div style="overflow-x:auto"><table><thead><tr><th>Mês</th><th>Procura Expect.</th><th>Procura Real</th><th>Matr. Expect.</th><th>Matriculados</th><th>Conversão</th></tr></thead><tbody id="mb"></tbody></table></div>
+      </div>
+    </div>
+    <div class="view" id="view-contatos">
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+        <div class="sw" style="flex:1;min-width:180px"><i class="ti ti-search"></i><input type="text" id="cq" placeholder="Buscar aluno ou responsável..." oninput="filterContatos()"></div>
+        <select id="cE" onchange="filterContatos()"><option value="">Todos</option><option>Educação Infantil</option><option>Fundamental I</option><option>Fundamental II</option><option>Ensino Médio</option></select>
+        <select id="cP" onchange="filterContatos()"><option value="">Todos os períodos</option><option value="Matutin">Matutino</option><option value="Vespert">Vespertino</option><option value="Estendido">Estendido</option></select>
+        <button class="btn" onclick="exportContatosCsv()"><i class="ti ti-download"></i>Exportar CSV</button>
+      </div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px" id="cCnt"></div>
+      <div class="cg" id="cGrid"></div>
+    </div>
+    <div class="view" id="view-historico">
+      <div class="sg" id="hSg"></div>
+      <div class="card" style="margin-bottom:14px"><div class="card-h"><span class="card-t">Matrículas por mês e segmento</span></div>
+        <div style="padding:14px">
+          <div class="legend">
+            <span style="display:flex;align-items:center;gap:5px"><span class="ld" style="background:#B5D4F4"></span>Ed. Infantil</span>
+            <span style="display:flex;align-items:center;gap:5px"><span class="ld" style="background:#9FE1CB"></span>Fundamental I</span>
+            <span style="display:flex;align-items:center;gap:5px"><span class="ld" style="background:#CECBF6"></span>Fundamental II</span>
+            <span style="display:flex;align-items:center;gap:5px"><span class="ld" style="background:#FAC775"></span>Ensino Médio</span>
+          </div>
+          <div class="chart-wrap"><canvas id="cBar"></canvas></div>
+        </div>
+      </div>
+      <div class="two">
+        <div class="card"><div class="card-h"><span class="card-t">Por segmento (ativos)</span></div><div style="padding:10px"><div class="chart-wrap" style="height:200px"><canvas id="cDnut"></canvas></div></div></div>
+        <div class="card"><div class="card-h"><span class="card-t">Por período</span></div><div style="padding:10px"><div class="chart-wrap" style="height:200px"><canvas id="cPer"></canvas></div></div></div>
+      </div>
+      <div class="card"><div class="card-h"><span class="card-t">Detalhamento mensal</span></div><div style="overflow-x:auto"><table id="hTbl"></table></div></div>
+    </div>
+    <div class="view" id="view-busca">
+      <div class="card" style="padding:16px;margin-bottom:14px">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+          <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Bairro</label><select id="fB" onchange="advSearch()" style="width:100%"><option value="">Todos</option></select></div>
+          <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Como conheceu</label><select id="fCo" onchange="advSearch()" style="width:100%"><option value="">Todos</option></select></div>
+          <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Período</label><select id="fP" onchange="advSearch()" style="width:100%"><option value="">Todos</option><option>Matutino</option><option>Vespertino</option><option>Estendido</option></select></div>
+          <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Diagnóstico</label><select id="fD" onchange="advSearch()" style="width:100%"><option value="">Todos</option><option value="chamar">Precisa atenção</option><option value="sem">Sem diagnóstico</option></select></div>
+          <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Extracurricular</label><select id="fX" onchange="advSearch()" style="width:100%"><option value="">Todos</option><option value="com">Com extracurricular</option><option value="sem">Sem extracurricular</option></select></div>
+          <div style="display:flex;align-items:flex-end"><button class="btn" onclick="clearAdv()" style="width:100%"><i class="ti ti-refresh"></i>Limpar filtros</button></div>
+        </div>
+      </div>
+      <div class="card"><div class="card-h"><span class="card-t" id="advC">—</span></div>
+        <div style="overflow-x:auto"><table><thead><tr><th>Nome</th><th>Ensino</th><th>Ano</th><th>Bairro</th><th>Período</th><th>Como conheceu</th><th>Extracurricular</th></tr></thead><tbody id="advB"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<div class="ov" id="ov" onclick="closeDetail()"></div>
+<div class="dp" id="dp">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <span style="font-size:14px;font-weight:500">Ficha do aluno</span>
+    <span style="cursor:pointer;color:var(--text2);padding:4px" onclick="closeDetail()"><i class="ti ti-x" style="font-size:18px"></i></span>
+  </div>
+  <div id="dc"></div>
+</div>
+<script>
+var D=[{"nome":"Bel Albuquerque Thomaz","sit":"Ativo","sx":"Fem","ens":"Fundamental I","ano":"1º","agr":"Agrupada II ano 1","per":"Vespertino","hor":"13h às 17h30","ext":"","nasc":"04/08/2019","nd":4,"nm":8,"tel":"","email":"belalbuquerquethomaz@escolaaguai.com","cep":"04334-170","logr":"Travessa Lázaro Ricardo","bairro":"Vila Fachini","cidade":"São Paulo","est":"SP","num":"115 cs 7","mn":"Kamila Albuquerque Teodoro Thomaz","mt":"11 96217 6766","me":"kamila.albuquerquet@hotmail.com","pn":"","pt":"(11) 93957-1010","pe":"jonathas.t@hotmail.com","dm":"15/01/2025","ck":"Indicação","dov":"1ª escola","diag":"","ra":"124.438.319-3","cpf":"575.276.198-05","di":"NOK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Bento Carvalho Osório","sit":"Ativo","sx":"Masc","ens":"Fundamental I","ano":"1º","agr":"Agrupada II ano 1","per":"Período Estendido","hor":"8h","ext":"","nasc":"28/02/2020","nd":28,"nm":2,"tel":"","email":"bentocarvalhoosorio@escolaaguai.com","cep":"04408-030","logr":"Rua Santa Felícia","bairro":"Americanópolis","cidade":"São Paulo","est":"SP","num":"203","mn":"Debora de Oliveira Carvalho","mt":"11 99199 8847","me":"Carvalho.debora@outlook.com","pn":"","pt":"(11) 991998847","pe":"bethodog@yahoo.com.br","dm":"20/09/2024","ck":"Indicação","dov":"Ateliê Quintal da Aprendizagem","diag":"","ra":"125034766-x","cpf":"582.913.118-89","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Eloá Anaya Vieira de Souza Xavier","sit":"Ativo","sx":"Fem","ens":"Fundamental I","ano":"1º","agr":"Agrupada II ano 1","per":"Vespertino","hor":"13h às 17h30","ext":"Circo, Teatro","nasc":"25/12/2018","nd":25,"nm":12,"tel":"","email":"eloaxavier@escolaaguai.com","cep":"04326070","logr":"Rua Tarcilia","bairro":"Vila Fachini","cidade":"São Paulo","est":"SP","num":"118","mn":"Kaina Vieira de Souza Xavier","mt":"1197645-3703","me":"kaina.souza.xavier@gmail.com","pn":"","pt":"1199013-0399","pe":"rafabrown8688@gmail.com","dm":"","ck":"","dov":"Colégio Guaracy Nova Era","diag":"chamar","ra":"122823923-X","cpf":"56363386861","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Gabriel Alves Oliveira","sit":"Ativo","sx":"Masc","ens":"Fundamental I","ano":"1º","agr":"Agrupada II ano 1","per":"Vespertino","hor":"13h às 17h30","ext":"","nasc":"01/07/2019","nd":1,"nm":7,"tel":"","email":"gabrielalves@escolaaguai.com","cep":"04368004","logr":"Rua Doutor Djalma Pinheiro Franco","bairro":"Vila Santa Catarina","cidade":"São Paulo","est":"SP","num":"1404","mn":"Geiza Cristiane Alves Oliveira","mt":"(11) 98940-3870","me":"geiza.gbiel@gmail.com","pn":"","pt":"(11) 91264-0253","pe":"rodrigo.aerosoft@gmail.com","dm":"","ck":"Indicação","dov":"Escola Estadual Reducino de Oliveira Lara","diag":"","ra":"122337517-1","cpf":"57398294883","di":"OK","drive":"","ficha":"ok","cont":"","sd":"Não enviada"},{"nome":"Gael Pires Hansen","sit":"Ativo","sx":"Masc","ens":"Fundamental I","ano":"1º","agr":"Agrupada II ano 1","per":"Vespertino","hor":"13h às 17h30","ext":"","nasc":"30/10/2019","nd":30,"nm":10,"tel":"","email":"gaelpireshansen@escolaaguai.com","cep":"04349-000","logr":"Rua das Grumixamas","bairro":"Vila Parque Jabaquara","cidade":"São Paulo","est":"SP","num":"282 apt. 91","mn":"Maira Limp Pires","mt":"11 99608 0621","me":"maira.limp@gmail.com","pn":"","pt":"(11) 97280-6079","pe":"raulhansen78@hotmail.com","dm":"01/10/2024","ck":"Internet","dov":"1ª escola","diag":"","ra":"124.501.418-3","cpf":"578.659.378-90","di":"OK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Heitor de Lana Sá","sit":"Ativo","sx":"Masc","ens":"Fundamental I","ano":"1º","agr":"Agrupada II ano 1","per":"Período Estendido","hor":"10h","ext":"","nasc":"06/03/2020","nd":6,"nm":3,"tel":"","email":"heitordelanasa@escolaaguai.com","cep":"04313-020","logr":"Praça Vitor Godinho","bairro":"Vila Guarani (Z Sul)","cidade":"São Paulo","est":"SP","num":"109","mn":"Lizandra Gonçalez Sá","mt":"11 9 7616 8342","me":"liz.sa@hotmail.com","pn":"","pt":"(11) 98040-4666","pe":"leonardo.guerra@vya.digital","dm":"29/11/2024","ck":"Indicação","dov":"Ateliê Quintal da Aprendizagem","diag":"","ra":"125034339-2","cpf":"589.465.508-05","di":"OK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Heloisa Pantoja Danze Lopes","sit":"Ativo","sx":"Fem","ens":"Fundamental I","ano":"1º","agr":"Agrupada II ano 1","per":"Vespertino","hor":"13h às 17h30","ext":"","nasc":"25/07/2019","nd":25,"nm":7,"tel":"11946866775","email":"heloisadanze@escolaaguai.com","cep":"04334-050","logr":"Rua Coroa Imperial","bairro":"Vila Fachinni","cidade":"São Paulo","est":"SP","num":"279","mn":"Aline Pantoja Danze","mt":"(11) 94686-6775","me":"aline_danze@hotmail.com","pn":"","pt":"(11) 98182-7354","pe":"fe.tl@hotmail.com","dm":"","ck":"Escolas Parceiras","dov":"Escola Baby Dada","diag":"","ra":"125967778-3","cpf":"57487747808","di":"NOK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Luiza Souza Almeida","sit":"Ativo","sx":"Fem","ens":"Fundamental I","ano":"1º","agr":"Agrupada II ano 1","per":"Vespertino","hor":"13h às 17h30","ext":"","nasc":"20/03/2020","nd":20,"nm":3,"tel":"","email":"luizaalmeida@escolaaguai.com","cep":"04328-000","logr":"Rua João Batista","bairro":"Jardim Lourdes","cidade":"São Paulo","est":"SP","num":"47","mn":"Nathália Santos Almeida","mt":"1194680-9241","me":"nalmeidajor@yahoo.com.br","pn":"","pt":"1196034-9178","pe":"viniciussouza.email@gmail.com","dm":"","ck":"","dov":"E.E Professor Arthur Wolff Netto","diag":"","ra":"122488540-5","cpf":"588.041.908-84","di":"OK","drive":"","ficha":"ok","cont":"","sd":"Não enviada"},{"nome":"Miguel Alejandro Gouveia Tapia","sit":"Ativo","sx":"Masc","ens":"Fundamental I","ano":"1º","agr":"Agrupada II ano 1","per":"Vespertino","hor":"13h às 17h30","ext":"","nasc":"22/01/2020","nd":22,"nm":1,"tel":"","email":"migueltapia@escolaaguai.com","cep":"04314-050","logr":"R. Elza Fagundes","bairro":"Vila Guarani (Z Sul)","cidade":"São Paulo","est":"SP","num":"208","mn":"Natasha Alves Gouveia","mt":"","me":"","pn":"","pt":"11 969451573","pe":"herbert_tapia@hotmail.com","dm":"","ck":"","dov":"NEUSA MARIA ROSSI EMEI","diag":"","ra":"124147476-X","cpf":"581.604.158-42","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Rafael Moreira Sena","sit":"Ativo","sx":"Masc","ens":"Fundamental I","ano":"1º","agr":"Agrupada II ano 1","per":"Período Estendido","hor":"10h às 19h","ext":"","nasc":"13/02/2020","nd":13,"nm":2,"tel":"","email":"rafaelsena@escolaaguai.com","cep":"04624-002","logr":"Rua Estevão Baião","bairro":"Vila Congonhas","cidade":"São Paulo","est":"SP","num":"673","mn":"Amanda Faria Moreira Sena","mt":"11 99523 7753","me":"mmaannddii@gmail.com","pn":"","pt":"(11) 96418-7753","pe":"brunnosena@hotmail.com","dm":"04/06/2025","ck":"Amigo","dov":"1° Escola","diag":"","ra":"124.635.703-3","cpf":"582.497.408-07","di":"OK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Raphael Akira Ikeda Gallão","sit":"Ativo","sx":"Masc","ens":"Fundamental I","ano":"1º","agr":"Agrupada II ano 1","per":"Período Estendido","hor":"10h","ext":"","nasc":"05/06/2019","nd":5,"nm":6,"tel":"","email":"raphaelakira@escolaaguai.com","cep":"04313-002","logr":"Avenida Leonardo da Vinci","bairro":"Vila Guarani (Z Sul)","cidade":"São Paulo","est":"SP","num":"1520 apto 83","mn":"Daniela Ikeda","mt":"11 98269 0058","me":"Dani.ikeda@gmail.com","pn":"","pt":"11 98154-3885","pe":"Alexandregallao@gmail.com","dm":"07/10/2024","ck":"Escolas Parceiras","dov":"EMEI Leonor Mendes Barros Dona","diag":"","ra":"125065348-4","cpf":"572.923.808-83","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Sabrina Tonioli Bucoff","sit":"Ativo","sx":"Fem","ens":"Fundamental I","ano":"1º","agr":"Agrupada II ano 1","per":"Período Estendido","hor":"12h","ext":"todos","nasc":"20/05/2019","nd":20,"nm":5,"tel":"","email":"sabrinabucoff@escolaaguai.com","cep":"09910-700","logr":"Rua São Genaro","bairro":"Centro","cidade":"São Paulo","est":"SP","num":"180","mn":"Daniele Tonioli Bucoff","mt":"11 98990 3231","me":"danitonioli@gmail.com","pn":"","pt":"11 99217 1515","pe":"brunobucoff@gmail.com","dm":"01/10/2025","ck":"","dov":"Novo Passo","diag":"","ra":"123634515-0","cpf":"572.145.628-04","di":"OK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Manuela Vianna de Oliveira","sit":"Ativo","sx":"Fem","ens":"Fundamental I","ano":"3º","agr":"Agrupada II ano 3","per":"Período Estendido","hor":"9h","ext":"","nasc":"23/12/2017","nd":23,"nm":12,"tel":"","email":"manuelaviannadeoliveira@escolaaguai.com","cep":"04151-080","logr":"Rua Macarani","bairro":"Bosque da Saúde","cidade":"São Paulo","est":"SP","num":"341","mn":"Renata Lima de Brito Vianna","mt":"11 97611 8697","me":"podepano@gmail.com","pn":"","pt":"(11) 993563838","pe":"anothervideobrain@gmail.com","dm":"18/09/2024","ck":"Indicação","dov":"Escola do Bairro","diag":"chamar","ra":"122.119.798-8","cpf":"540.113.908-01","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Antonella Araujo Rodriguez","sit":"Ativo","sx":"Fem","ens":"Fundamental I","ano":"2º","agr":"Agrupada II ano 2","per":"Período Estendido","hor":"10h","ext":"","nasc":"19/01/2019","nd":19,"nm":1,"tel":"","email":"antonellarodriguez@escolaaguai.com","cep":"04349020","logr":"Rua das Canjeranas","bairro":"Vila Parque Jabaquara","cidade":"São Paulo","est":"SP","num":"40","mn":"Stella Araújo","mt":"1199364-0354","me":"stearaujo92@gmail.com","pn":"","pt":"1199364-0354","pe":"cristhianherman@gmail.com","dm":"05/02/2025","ck":"Indicação","dov":"EMEI Neusa Maria Rossi","diag":"","ra":"124820473-6","cpf":"564.286.448-35","di":"NOK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Helena Oliveria Paladin","sit":"Ativo","sx":"Fem","ens":"Fundamental I","ano":"2º","agr":"Agrupada II ano 2","per":"Período Estendido","hor":"8h","ext":"","nasc":"08/02/2019","nd":8,"nm":2,"tel":"","email":"helenapaladin@escolaaguai.com","cep":"04314-120","logr":"R. Cymbelino de Freitas","bairro":"Vila Guarani (Z Sul)","cidade":"São Paulo","est":"SP","num":"45","mn":"Marcella Sant'Ana Oliveira","mt":"11 95249 9798","me":"marcellapaladin@outlook.com","pn":"","pt":"11 9 4839 0471","pe":"PRISCILLAPALADIN@GMAIL.COM","dm":"","ck":"","dov":"EMEF Prof. Nelson Pimentel Queiroz","diag":"","ra":"122215394-4","cpf":"176.269.796-30","di":"OK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Isabella Melo Vieira","sit":"Ativo","sx":"Fem","ens":"Fundamental I","ano":"2º","agr":"Agrupada II ano 2","per":"Período Estendido","hor":"12h","ext":"","nasc":"25/03/2019","nd":25,"nm":3,"tel":"","email":"isabellamelo@escolaaguai.com","cep":"04313-210","logr":"Rua Maracá","bairro":"Vila Guarani (Z Sul)","cidade":"São Paulo","est":"SP","num":"739","mn":"Elizabeth Melo Vieira","mt":"11-98805-7810","me":"Bet_melo@outlook.com","pn":"","pt":"11-98280-6226","pe":"Paulinhovieira99@hotmail.com","dm":"11/12/2024","ck":"Indicação","dov":"Novo Passo","diag":"","ra":"125934233-5","cpf":"568.429.338-70","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Julia Habernmann Saadeh Silva","sit":"Ativo","sx":"Fem","ens":"Fundamental I","ano":"2º","agr":"Agrupada II ano 2","per":"Vespertino","hor":"13h às 17h30","ext":"","nasc":"03/10/2018","nd":3,"nm":10,"tel":"","email":"juliasaadeh@escolaaguai.com","cep":"04317-251","logr":"Travessa Silésia","bairro":"Vila Guarani (Z Sul)","cidade":"São Paulo","est":"SP","num":"11","mn":"Luciana Habermann Silva","mt":"1198591-9794","me":"luciana.habermann@gmail.com","pn":"","pt":"(11)98484-3576","pe":"wilson.saadeh@gmail.com","dm":"05/02/2025","ck":"Indicação","dov":"Colégio Lumen Vitae","diag":"chamar","ra":"122969022-0","cpf":"55851514876","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Luís Antonio Rocha Oliveira","sit":"Ativo","sx":"Masc","ens":"Fundamental I","ano":"2º","agr":"Agrupada II ano 2","per":"Vespertino","hor":"13h às 17h30","ext":"","nasc":"24/03/2019","nd":24,"nm":3,"tel":"","email":"luisantoniorochaoliveira@escolaaguai.com","cep":"04336-160","logr":"Rua Doutor Alcides de Campos","bairro":"Americanópolis","cidade":"São Paulo","est":"SP","num":"116","mn":"Silvania Matias da Rocha","mt":"(11)96910-4586","me":"sil-vania-1984@hotmail.com","pn":"","pt":"(13) 98150-7940","pe":"carluciooliveiraalves@hotmail.com","dm":"25/11/2024","ck":"Escolas Parceiras","dov":"Sigerman","diag":"","ra":"123736458-9","cpf":"568.343.868-31","di":"OK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Manuella Amorim Carneiro","sit":"Ativo","sx":"Fem","ens":"Fundamental I","ano":"2º","agr":"Agrupada II ano 2","per":"Período Estendido","hor":"8h","ext":"","nasc":"15/08/2018","nd":15,"nm":8,"tel":"","email":"manuellaamorimcarneiro@escolaaguai.com","cep":"04332120","logr":"Rua Esmeralda Monteiro","bairro":"Vila Campestre","cidade":"São Paulo","est":"SP","num":"330","mn":"Luiza Amorim Silva","mt":"11948439019","me":"luizaamorimis@icloud.com","pn":"","pt":"11987817433","pe":"gabrielmanuellaIS@gmail.com","dm":"09/12/2024","ck":"Familiar","dov":"Creche Baronesa de Limeira","diag":"","ra":"121.183.507-8","cpf":"555.800.458-40","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Maria Clara Fernandes Hennies","sit":"Ativo","sx":"Fem","ens":"Fundamental I","ano":"2º","agr":"Agrupada II ano 2","per":"Vespertino","hor":"13h às 17h30","ext":"","nasc":"29/09/2018","nd":29,"nm":9,"tel":"","email":"mariaclarafernandes@escolaaguai.com","cep":"04313-090","logr":"Rua Wilson Nahra","bairro":"Vila Guarani (Z Sul)","cidade":"São Paulo","est":"SP","num":"112 QD2 BL13 AP12","mn":"Ana Carolina de Moura Hennies","mt":"11 97978 9677","me":"anacarolina.hennies@gmail.com","pn":"","pt":"(11) 99575-8955","pe":"alex.f.lima@gmail.com","dm":"09/09/2024","ck":"Site/Google","dov":"Divina Pastora","diag":"","ra":"124509044-6","cpf":"558.373.178-80","di":"NOK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Maria Clara Martins Silva","sit":"Ativo","sx":"Fem","ens":"Fundamental I","ano":"2º","agr":"Agrupada II ano 2","per":"Período Estendido","hor":"12h","ext":"","nasc":"18/02/2018","nd":18,"nm":2,"tel":"","email":"mariaclaramartins@escolaaguai.com","cep":"04410-010","logr":"Rua Professor Dino Fausto Fontana","bairro":"Americanópolis","cidade":"São Paulo","est":"SP","num":"6","mn":"Michelle Martins","mt":"11 94790-0765","me":"mihmartins@hotmail.com","pn":"","pt":"11 94719 5985","pe":"clarailumieletrica@gmail.com","dm":"13/09/2024","ck":"Indicação","dov":"Sigerman Novo passo","diag":"","ra":"123027127-2","cpf":"358.325.568-28","di":"OK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Martin Leal Escobar","sit":"Ativo","sx":"Masc","ens":"Fundamental I","ano":"2º","agr":"Agrupada II ano 2","per":"Período Estendido","hor":"10h","ext":"","nasc":"17/02/2019","nd":17,"nm":2,"tel":"","email":"martinlealescobar@escolaaguai.com","cep":"04317-180","logr":"Avenida Lino de Almeida Pires","bairro":"Vila Guarani (Z Sul)","cidade":"São Paulo","est":"SP","num":"311","mn":"Marina Leal Brito","mt":"11 994919050","me":"marinalealb@gmail.com","pn":"","pt":"11 98204-0694","pe":"escobs@gmail.com","dm":"09/01/2025","ck":"","dov":"EMEF Prof. Nelson Pimentel Queiroz","diag":"","ra":"124796414-0","cpf":"566.173.378-08","di":"NOK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Olívia Monteiro França","sit":"Ativo","sx":"Fem","ens":"Fundamental I","ano":"2º","agr":"Agrupada II ano 2","per":"Período Estendido","hor":"09h as 18h","ext":"Todas","nasc":"09/01/2019","nd":9,"nm":1,"tel":"","email":"oliviamonteiro@escolaaguai.com","cep":"09941-202","logr":"Avenida Fábio Eduardo Ramos Esquivel","bairro":"Canhema","cidade":"Diadema","est":"SP","num":"2900","mn":"Camila Sella Monteiro","mt":"11959845632","me":"camila@grupoeld.com.br","pn":"","pt":"11947124437","pe":"paulo@grupoeld.com.br","dm":"","ck":"","dov":"","diag":"","ra":"125934357-1","cpf":"564.101.096-73","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Pedro Henrique Azar de Oliveira","sit":"Ativo","sx":"Masc","ens":"Fundamental I","ano":"2º","agr":"Agrupada II ano 2","per":"Período Estendido","hor":"6h","ext":"","nasc":"27/12/2018","nd":27,"nm":12,"tel":"","email":"phOliveira@escolaaguai.com","cep":"04346-070","logr":"Rua dos Cambuís","bairro":"VIla Parque Jabaquara","cidade":"São Paulo","est":"SP","num":"199","mn":"Tatiane Carone Azar","mt":"1198883-1793","me":"tatic.azar@gmail.com","pn":"","pt":"11945515535","pe":"alesssandro.gunga@hotmail.com","dm":"","ck":"","dov":"Colégio Janjão & Albuquerque","diag":"","ra":"122187252-7","cpf":"562.975.958-28","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Pedro Yuji Akamine Giroldo","sit":"Ativo","sx":"Masc","ens":"Fundamental I","ano":"2º","agr":"Agrupada II ano 2","per":"Vespertino","hor":"13h às 17h30","ext":"","nasc":"15/02/2019","nd":15,"nm":2,"tel":"","email":"pedroyuji@escolaaguai.com","cep":"04311-080","logr":"Rua Humberto de Campos","bairro":"Vila Guarani (Z Sul)","cidade":"São Paulo","est":"SP","num":"67 apto 154","mn":"Adriana Tiemi Akamine","mt":"11 9596 36176","me":"Akamine.vet@outlook.com","pn":"","pt":"(11) 99435-9188","pe":"fg.giroldo@hotmail.com","dm":"12/12/2024","ck":"Indicação","dov":"Caminho do Saber","diag":"chamar","ra":"123431138-0","cpf":"549.529.988-43","di":"NOK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Agata Maria Kovacs Monção","sit":"Ativo","sx":"Fem","ens":"Fundamental I","ano":"3º","agr":"Agrupada II ano 3","per":"Vespertino","hor":"13h às 17h30","ext":"","nasc":"30/09/2017","nd":30,"nm":9,"tel":"","email":"agatakovacs@escolaaguai.com","cep":"04327010","logr":"Rua Xavier Paes","bairro":"Vila Fachini","cidade":"São Paulo","est":"SP","num":"109","mn":"Sandra Bras Kovacs Monção","mt":"11 96300-0498","me":"sandrakovacs@bol.com.br","pn":"","pt":"11 99338-4772","pe":"camilakovacs@hotmail.com","dm":"28/01/2025","ck":"Site/Google","dov":"Escola Adventista de Americanópolis","diag":"chamar","ra":"121646152-1","cpf":"54352115819","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Augusto Alves Gomes","sit":"Ativo","sx":"Masc","ens":"Fundamental I","ano":"3º","agr":"Agrupada II ano 3","per":"Vespertino","hor":"13h às 17h30","ext":"","nasc":"25/02/2018","nd":25,"nm":2,"tel":"","email":"augustoalvesgomes@escolaaguai.com","cep":"04320-110","logr":"Rua Itaiara","bairro":"Cidade Vargas","cidade":"São Paulo","est":"SP","num":"143","mn":"Roseli Alves Machado","mt":"11 99746 9011","me":"rogeografa@gmail.com","pn":"","pt":"(11) 998756311","pe":"rogeografa@gmail.com","dm":"03/09/2024","ck":"Escolas Parceiras","dov":"Sigerman Escola de Educação Infantil","diag":"chamar","ra":"122346495-7","cpf":"544.222.428-65","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Gustavo Fonte Lima","sit":"Ativo","sx":"Masc","ens":"Fundamental I","ano":"3º","agr":"Agrupada II ano 3","per":"Período Estendido","hor":"12h","ext":"","nasc":"06/11/2016","nd":6,"nm":11,"tel":"","email":"gustavofontelima@escolaaguai.com","cep":"04318-060","logr":"Rua Pampa","bairro":"Cidade Vargas","cidade":"São Paulo","est":"SP","num":"445","mn":"Angela Pereira Lima","mt":"11 97688 0747‬","me":"Angelapereira_lima05@outlook.com","pn":"","pt":"(11) 94088-8281","pe":"","dm":"08/01/2025","ck":"Indicação","dov":"Colégio Mais - Unidade Vila Mascote III","diag":"chamar","ra":"121180356-9","cpf":"520.205.498-08","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Alessandro Junior Musso Rodrigues","sit":"Inativo","sx":"Masc","ens":"Fundamental I","ano":"2º","agr":"Agrupada II ano 2","per":"Vespertino","hor":"13h às 17h30","ext":"","nasc":"04/04/2019","nd":4,"nm":4,"tel":"(11) 98640-1985","email":"alessandromusso@escolaaguai.com","cep":"04343-120","logr":"Rua Freire Farto","bairro":"Jabaquara","cidade":"São Paulo","est":"SP","num":"45","mn":"Isabel Cristina Rodrigues de Souza Miranda","mt":"(11) 98640-1985","me":"Isabelcristina2019ale@gmail.com","pn":"","pt":"","pe":"","dm":"","ck":"","dov":"Itália","diag":"","ra":"125068121-2","cpf":"245.036.288-60","di":"NOK","drive":"","ficha":"","cont":"","sd":""},{"nome":"Isac Rafael dos Santos Freitas","sit":"Ativo","sx":"Masc","ens":"Fundamental I","ano":"3º","agr":"Agrupada II ano 3","per":"Vespertino","hor":"13h às 17h30","ext":"","nasc":"07/10/2017","nd":7,"nm":10,"tel":"","email":"isacrafael@escolaaguai.com","cep":"09921-000","logr":"Avenida das Nações","bairro":"Taboão","cidade":"Diadema","est":"SP","num":"748","mn":"Ana Carolina dos Santos","mt":"11 95727 5199","me":"carol67show@gmail.com","pn":"","pt":"(11) 96950-9634","pe":"fabiano1684@hotmail.com","dm":"03/09/2024","ck":"Indicação","dov":"Henfil","diag":"","ra":"121.905.279-6","cpf":"307.385.816-92","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Heitor Carneiro Mendes","sit":"Inativo","sx":"Masc","ens":"Educação Infantil","ano":"2º","agr":"????","per":"Vespertino","hor":"13h às 17h30","ext":"","nasc":"03/11/2018","nd":3,"nm":11,"tel":"","email":"heitormendes@escolaaguai.com","cep":"04313-001","logr":"Av. Leonardo da Vinci","bairro":"Vila Guarani (Z Sul)","cidade":"São Paulo","est":"SP","num":"372","mn":"Tássia Dias Carneiro","mt":"11 98516-5177","me":"tassiacarneiro@gmail.com","pn":"","pt":"11 98616-1665","pe":"diogobmendes@gmail.com","dm":"","ck":"","dov":"","diag":"chamar","ra":"122.194.908-1","cpf":"560.135.868-02","di":"OK","drive":"","ficha":"","cont":"","sd":""},{"nome":"Isadora Alves Barbosa","sit":"Ativo","sx":"Fem","ens":"Fundamental I","ano":"3º","agr":"Agrupada II ano 3","per":"Período Estendido","hor":"8h","ext":"","nasc":"23/11/2017","nd":23,"nm":11,"tel":"","email":"isadorabarbosa@escolaaguai.com","cep":"04314-000","logr":"Rua Simão da Matta","bairro":"Vila Guarani (Z Sul)","cidade":"São Paulo","est":"SP","num":"187","mn":"Débora Alves Pereira","mt":"11 98542 6529","me":"debora.alvesp@hotmail.com","pn":"","pt":"11 9635 68357","pe":"luizcarlos.mil@hotmail.com","dm":"04/09/2024","ck":"Indicação","dov":"EI e EF Colégio 22 de Abril","diag":"","ra":"121.390.041-4","cpf":"538.189.608-52","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Livia Naomi Doi","sit":"Ativo","sx":"Fem","ens":"Fundamental I","ano":"3º","agr":"Agrupada II ano 3","per":"Período Estendido","hor":"8h","ext":"","nasc":"31/03/2018","nd":31,"nm":3,"tel":"(11) 98068-6189","email":"livianaomidoi@escolaaguai.com","cep":"04313-210","logr":"Rua Maracá","bairro":"Vila Guarani (Z Sul)","cidade":"São Paulo","est":"SP","num":"739 - apto 3b","mn":"Priscila Mari Jodai Doi","mt":"11  98068 6189","me":"pjodai@yahoo.com","pn":"","pt":"(11) 97620-0857","pe":"doi_thiago@hotmail.com","dm":"13/09/2024","ck":"Google","dov":"Jardim da Maria Eugênia","diag":"","ra":"123726191-0","cpf":"547.116.468-76","di":"OK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Lucas Moreira Sena","sit":"Ativo","sx":"Masc","ens":"Fundamental I","ano":"3º","agr":"Agrupada II ano 3","per":"Período Estendido","hor":"10h às 19h","ext":"","nasc":"13/07/2017","nd":13,"nm":7,"tel":"","email":"lucassena@escolaaguai.com","cep":"04624-002","logr":"Rua Estevão Baião","bairro":"Vila Congonhas","cidade":"São Paulo","est":"SP","num":"673","mn":"Amanda Faria Moreira Sena","mt":"11 99523 7753","me":"mmaannddii@gmail.com","pn":"","pt":"(11) 96418-7753","pe":"brunnosena@hotmail.com","dm":"14/08/2025","ck":"Amigo","dov":"Prefeitura de São Sebastião","diag":"","ra":"124.307.287-8","cpf":"","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Naia Ferreira Yasuoka","sit":"Ativo","sx":"Fem","ens":"Fundamental I","ano":"3º","agr":"Agrupada II ano 3","per":"Período Estendido","hor":"8h","ext":"Todas","nasc":"17/01/2018","nd":17,"nm":1,"tel":"","email":"naiaferreira@escolaaguai.com","cep":"04134-021","logr":"Rua Vigário Albernaz","bairro":"Vila Gumercindo","cidade":"São Paulo","est":"SP","num":"750","mn":"Gabriela Ferreira de Souza","mt":"11 97225-2277","me":"gabis_fs@yahoo.com.br","pn":"","pt":"11 94214 6082","pe":"reginaldo.yasuoka@gmail.com","dm":"16/09/2024","ck":"Indicação","dov":"EE Victor Oliva","diag":"","ra":"121446829-9","cpf":"541.628.278-93","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Rafael de Freitas Paranhos","sit":"Ativo","sx":"Masc","ens":"Fundamental I","ano":"3º","agr":"Agrupada III ano 1","per":"Período Estendido","hor":"10h","ext":"","nasc":"07/08/2017","nd":7,"nm":8,"tel":"","email":"rafaelparanhos@escolaaguai.com","cep":"04334040","logr":"Avenida Muzambinho","bairro":"Vila Fachini","cidade":"São Paulo","est":"SP","num":"168","mn":"Catarina de Melo Freitas","mt":"11 97130-7844","me":"catarolinamf@gmail.com","pn":"","pt":"11971307844","pe":"","dm":"","ck":"","dov":"E.E Professor Arthur Wolff Netto","diag":"","ra":"122119230-9","cpf":"","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Ana Rosa Molina Valenti","sit":"Ativo","sx":"Fem","ens":"Fundamental I","ano":"4º","agr":"Agrupada III ano 1","per":"Período Estendido","hor":"8h","ext":"","nasc":"24/12/2016","nd":24,"nm":12,"tel":"","email":"anarosamolina@escolaaguai.com","cep":"04313-000","logr":"Avenida Leonardo da Vinci","bairro":"Vila Guarani (Z Sul)","cidade":"São Paulo","est":"SP","num":"301, ap 131 - Ed. Saint Peter","mn":"Vivian dos Santos Molina","mt":"11 99156 2049","me":"vivi_molina2005@hotmail.com","pn":"","pt":"(11) 97291-4347","pe":"awvalenti@gmail.com","dm":"09/09/2025","ck":"Filho Professor","dov":"Janjão","diag":"","ra":"122078999-9","cpf":"521.846.318-33","di":"OK","drive":"ok","ficha":"ok","cont":"ok","sd":"ok"},{"nome":"Gael Silva Cestari","sit":"Ativo","sx":"Masc","ens":"Fundamental I","ano":"4º","agr":"Agrupada III ano 1","per":"Vespertino","hor":"13h às 17h30","ext":"","nasc":"24/08/2016","nd":24,"nm":8,"tel":"","email":"gaelsilvacestari@escolaaguai.com","cep":"04309-011","logr":"Avenida Engenheiro Armando de Arruda Pereira","bairro":"Jabaquara","cidade":"São Paulo","est":"SP","num":"1743","mn":"Fernanda Raquel Lima da Silva","mt":"11 96430 0016","me":"fernandaraquellima@outlook.com","pn":"","pt":"(11) 96430-0107","pe":"piero.gestao@gmail.com","dm":"03/09/2024","ck":"Indicação","dov":"Planeta Colorido","diag":"","ra":"121850233-2","cpf":"516.749.898-81","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Luna Abou Mahmoud","sit":"Ativo","sx":"Fem","ens":"Fundamental I","ano":"4º","agr":"Agrupada III ano 1","per":"Período Estendido","hor":"8h","ext":"Todas","nasc":"29/06/2016","nd":29,"nm":6,"tel":"","email":"lunaaboumahmoud@escolaaguai.com","cep":"04407-090","logr":"Rua Carlo Formes","bairro":"Vila Império","cidade":"São Paulo","est":"SP","num":"19","mn":"Laila Abou Mahmoud","mt":"11 99183 3223","me":"laila.abou@gmail.com","pn":"","pt":"(96) 8139-0698","pe":"paulocambraia@gmail.com","dm":"28/02/2023","ck":"Novo Passo","dov":"Novo Passo","diag":"","ra":"116410256-4","cpf":"514.706.808-23","di":"NOK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Maria Eduarda Cavalcante Lopes","sit":"Ativo","sx":"Fem","ens":"Fundamental I","ano":"4º","agr":"Agrupada III ano 1","per":"Vespertino","hor":"13h às 17h30","ext":"","nasc":"09/06/2016","nd":9,"nm":6,"tel":"","email":"mariaeduardalopes@escolaaguai.com","cep":"04387-002","logr":"Avenida Rodrigues Montemor","bairro":"Cidade Domitila","cidade":"São Paulo","est":"SP","num":"36","mn":"Débora Ribeiro Cavalcante Lopes","mt":"11  98747 9789","me":"ribeirocavalcante@gmail.com","pn":"","pt":"(11)994222149","pe":"luiseduardodesouzalopes@gmail.com","dm":"","ck":"Novo Passo","dov":"Novo Passo","diag":"","ra":"122071858-0","cpf":"549.485.468-01","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Maria Luiza Maramaldo Vieira da Costa","sit":"Ativo","sx":"Fem","ens":"Fundamental I","ano":"4º","agr":"Agrupada III ano 1","per":"Período Estendido","hor":"8h","ext":"","nasc":"16/09/2016","nd":16,"nm":9,"tel":"","email":"marialuizamaramaldo@escolaaguai.com","cep":"04326-140","logr":"Rua Braga","bairro":"Vila Fachini","cidade":"São Paulo","est":"SP","num":"40","mn":"Ana Lurdes Ferreira Maramaldo","mt":"11 97385 0070","me":"amaramaldo@gmail.com","pn":"","pt":"(11) 97200-6498","pe":"Robertovieira.rvc@gmail.com","dm":"09/09/2025","ck":"Novo Passo","dov":"Novo Passo","diag":"","ra":"116154943-2","cpf":"517.308.518-51","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Tom Pestana Lacanna","sit":"Ativo","sx":"Masc","ens":"Fundamental I","ano":"4º","agr":"Agrupada III ano 1","per":"Vespertino","hor":"13h às 17h30","ext":"Teatro","nasc":"09/04/2016","nd":9,"nm":4,"tel":"","email":"tompestanalacanna@escolaaguai.com","cep":"04342-040","logr":"Rua Coronel João Gabi","bairro":"Jabaquara","cidade":"São Paulo","est":"SP","num":"111","mn":"Gabriela Pestana Lacanna","mt":"11 96614 4244","me":"gabi.pestana@gmail.com","pn":"","pt":"(11) 98991-4548","pe":"lacanna@gmail.com","dm":"16/09/2024","ck":"Internet","dov":"Barroso Almirante","diag":"","ra":"121042950-0","cpf":"511.465.518-35","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Leonardo Ribeiro de Souza Marques","sit":"Ativo","sx":"Masc","ens":"Fundamental I","ano":"5º","agr":"Agrupada III ano 2","per":"Vespertino","hor":"13h às 17h30","ext":"","nasc":"13/03/2016","nd":13,"nm":3,"tel":"11982844550","email":"leonardomarques@escolaaguai.com","cep":"04349-000","logr":"Rua das Grumixamas","bairro":"Jardim Oriental","cidade":"São Paulo","est":"SP","num":"334","mn":"Denise Ribeiro alves de Souza Soares","mt":"(11) 98284-4550","me":"denise0294@gmail.com","pn":"","pt":"","pe":"","dm":"12/11/2025","ck":"","dov":"Colégio Divina Pastora","diag":"","ra":"122068010-2","cpf":"510.441.288-10","di":"OK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Laerte Stephan dos Santos","sit":"Ativo","sx":"Masc","ens":"Fundamental I","ano":"4º","agr":"Agrupada III ano 2","per":"Vespertino","hor":"13h as 17h30","ext":"","nasc":"26/10/2016","nd":26,"nm":10,"tel":"","email":"laertesantos@escolaaguai.com","cep":"04104-051","logr":"Rua Chuí","bairro":"Paraíso","cidade":"São Paulo","est":"SP","num":"162","mn":"Sandra Stephan de Souza Telles","mt":"11 98524-7762","me":"sandrasst@gmail.com","pn":"","pt":"11 98127-3836","pe":"csmiro@gmail.com","dm":"06/01/2026","ck":"","dov":"Colégio Jardim da Glória","diag":"chamar","ra":"121208305-2","cpf":"519.543.228-79","di":"OK","drive":"","ficha":"ok","cont":"Não enviada","sd":"ok"},{"nome":"Lorenzo Barbosa Maciel","sit":"Ativo","sx":"Masc","ens":"Fundamental I","ano":"4º","agr":"Agrupada III ano 2","per":"Período Estendido","hor":"12h","ext":"","nasc":"14/05/2016","nd":14,"nm":5,"tel":"","email":"lorenzomaciel@escolaaguai.com","cep":"04326-010","logr":"Rua Azor Silva","bairro":"Vila Fachini","cidade":"São Paulo","est":"SP","num":"300","mn":"Tatiana Barbosa Maciel","mt":"11 9585 75021","me":"tatimaciela@gmail.com","pn":"","pt":"(11)99946-6229","pe":"renatomacielarruda@gmail.com","dm":"17/09/2024","ck":"Filho Professor","dov":"CEI Ame","diag":"","ra":"116.215.493-7","cpf":"513.011.708-52","di":"OK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Luis Miguel Souza Aires","sit":"Ativo","sx":"Masc","ens":"Fundamental I","ano":"4º","agr":"Agrupada III ano 2","per":"Vespertino","hor":"13h às 17h30","ext":"","nasc":"04/11/2016","nd":4,"nm":11,"tel":"","email":"luismiguelsouzaaires@escolaaguai.com","cep":"04336-030","logr":"Rua José Gaspar","bairro":"Americanópolis","cidade":"São Paulo","est":"SP","num":"255","mn":"Gilcasssia Souza Aires","mt":"11 95280 7629","me":"kassiaaires55@gmail.com","pn":"","pt":"(11) 952807629","pe":"eduard0xx@hotmail.com","dm":"","ck":"Indicação","dov":"Pedro Calil Padis Professor","diag":"chamar","ra":"120701216-6","cpf":"523.720.508-93","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Nuno Stephan dos Santos","sit":"Ativo","sx":"Masc","ens":"Fundamental I","ano":"4º","agr":"Agrupada III ano 2","per":"Vespertino","hor":"13h as 17h30","ext":"","nasc":"26/10/2016","nd":26,"nm":10,"tel":"","email":"nunosantos@escolaaguai.com","cep":"04104-051","logr":"Rua Chuí","bairro":"Paraíso","cidade":"São Paulo","est":"SP","num":"162","mn":"Sandra Stephan de Souza Telles","mt":"11 98524-7762","me":"sandrasst@gmail.com","pn":"","pt":"11 98127-3836","pe":"csmiro@gmail.com","dm":"06/01/2026","ck":"","dov":"Colégio Jardim da Glória","diag":"chamar","ra":"121208335-0","cpf":"519.543.398-44","di":"OK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Eduardo Ribeiro de Moura","sit":"Ativo","sx":"Masc","ens":"Fundamental I","ano":"5º","agr":"Agrupada III ano 2","per":"Período Estendido","hor":"10h","ext":"Todas","nasc":"14/01/2016","nd":14,"nm":1,"tel":"11964467850","email":"eduardodemoura@escolaaguai.com","cep":"04349-190","logr":"Rua Parnaíba Paoliello","bairro":"Jardim Oriental","cidade":"São Paulo","est":"SP","num":"82","mn":"Nathalia Pacheco Ribeiro","mt":"11992001333","me":"nathalia.npr@hotmail.com","pn":"","pt":"11986535066","pe":"wjm.moura@gmail.com","dm":"","ck":"Fachada","dov":"E.E Deputado Nelson Fernandes","diag":"","ra":"120219802-8","cpf":"50705654869","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Gael dos Santos Machado","sit":"Ativo","sx":"Masc","ens":"Fundamental I","ano":"5º","agr":"Agrupada III ano 2","per":"Vespertino","hor":"13h às 17h30","ext":"","nasc":"01/11/2015","nd":1,"nm":11,"tel":"(44) 99824-3893","email":"gaelmachado@escolaaguai.com","cep":"04152-100","logr":"Rua Calógero Calia","bairro":"Vila Santo Estefano","cidade":"São Paulo","est":"SP","num":"32","mn":"Lilian C. dos Santos Leite","mt":"44 99824-3893","me":"meni.santos1@gmail.com","pn":"","pt":"11 99685-4926","pe":"arthurmoita13@gmail.com","dm":"","ck":"Indicação","dov":"Valentim Gentil","diag":"","ra":"125676609-4","cpf":"153.515.499-30","di":"OK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Mateus Santos Gonçalves Pereira","sit":"Ativo","sx":"Masc","ens":"Fundamental I","ano":"5º","agr":"Agrupada III ano 2","per":"Vespertino","hor":"13h às 17h30","ext":"Teatro","nasc":"24/07/2015","nd":24,"nm":7,"tel":"","email":"mateuspereira@escolaaguai.com","cep":"04312-100","logr":"Rua Barreto Muniz","bairro":"Vila Guarani (Z Sul)","cidade":"São Paulo","est":"SP","num":"76","mn":"Joelma dos Santos Souza Pereira","mt":"11 95403 8331","me":"joelmasansouza@gmail.com","pn":"","pt":"(17)997315075","pe":"joelmasansouza@gmail.com","dm":"11/12/2024","ck":"Novo Passo","dov":"Novo Passo","diag":"","ra":"115.950.400-3","cpf":"511.556.158-16","di":"OK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Matheus de Carvalho Martins","sit":"Ativo","sx":"Masc","ens":"Fundamental I","ano":"5º","agr":"Agrupada III ano 2","per":"Vespertino","hor":"13h às 17h30","ext":"","nasc":"29/03/2016","nd":29,"nm":3,"tel":"","email":"matheuscarvalho@escolaaguai.com","cep":"04357-090","logr":"Rua Dom Otávio de Miranda","bairro":"Parque Jabaquara","cidade":"São Paulo","est":"SP","num":"52","mn":"Kassya de Carvalho Martins","mt":"11 993718664","me":"kassya@uol.com.br","pn":"","pt":"(11)99526-3827","pe":"sudanmartins@outlook.com","dm":"","ck":"Novo Passo","dov":"Novo Passo","diag":"","ra":"123.052.303-0","cpf":"511.195.428-71","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Yasmin Pereira de Medeiros","sit":"Ativo","sx":"Fem","ens":"Fundamental I","ano":"5º","agr":"Agrupada III ano 2","per":"Vespertino","hor":"13h às 17h30","ext":"","nasc":"16/05/2014","nd":16,"nm":5,"tel":"","email":"yasminmedeiros@escolaaguai.com","cep":"04349-210","logr":"Rua Taquacetuba","bairro":"VIla Parque Jabaquara","cidade":"São Paulo","est":"SP","num":"201","mn":"Beatriz Pereira Firmino da Silva","mt":"11957955210","me":"comercial@bsilvatransportes.com.br","pn":"","pt":"","pe":"","dm":"03/02/2026","ck":"Indicação","dov":"Escola Adventista de Americanópolis","diag":"chamar","ra":"115720987-7","cpf":"53570265803","di":"OK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Eduardo Riki Suda Bitencourt","sit":"Ativo","sx":"Masc","ens":"Fundamental I","ano":"6º","agr":"Agrupada III ano 2","per":"Período Estendido","hor":"10h","ext":"","nasc":"01/11/2014","nd":1,"nm":11,"tel":"","email":"eduardobitencourt@escolaaguai.com","cep":"04674-225","logr":"Avenida Sargento Geraldo Sant'Ana","bairro":"Jardim Taquaral","cidade":"São Paulo","est":"SP","num":"1100 Bloco 19 Apto 52","mn":"Amanda Yoriko Rocha Suda Bitencourt","mt":"11 94895 8380","me":"amandasuda@gmail.com","pn":"","pt":"(11) 98263-5987","pe":"Danilobitt@gmail.com","dm":"03/09/2024","ck":"","dov":"Prima Escola Montessori de São Paulo","diag":"chamar","ra":"115.983.919-9","cpf":"214.807.837-22","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Anna Beatriz Ribeiro Ferreira","sit":"Ativo","sx":"Fem","ens":"Ensino Médio","ano":"EM 1º","agr":"EM","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"27/06/2010","nd":27,"nm":6,"tel":"(11) 99160-9290","email":"annaribeiro@escolaaguai.com","cep":"04316-060","logr":"Rua Bicudo de Brito","bairro":"Vila Guarani","cidade":"São Paulo","est":"SP","num":"732","mn":"Patricia Ferreira Ribeiro Cezar","mt":"11941296285","me":"patricia.frcezar@gmail.com","pn":"","pt":"","pe":"","dm":"","ck":"Indicação","dov":"Colégio Marques de Monte Alegre","diag":"chamar","ra":"115817844-X","cpf":"49768992840","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Jonas Ribeiro Alves","sit":"Inativo","sx":"Masc","ens":"Fundamental I","ano":"4º","agr":"Agrupada III ano 2","per":"Intermediário","hor":"8h","ext":"","nasc":"05/09/2016","nd":5,"nm":9,"tel":"","email":"jonasribeiro@escolaaguai.com","cep":"04330-080","logr":"Rua Bento Coelho da Silveira","bairro":"Vila Campestre","cidade":"São Paulo","est":"SP","num":"100 apto 101","mn":"Samaia Cristina Lopes dos Santos","mt":"11 98465 9517","me":"cristina_sah@hotmail.com","pn":"","pt":"(11) 958512300","pe":"-","dm":"","ck":"Indicação","dov":"Escola Adventista Cidade Ademar","diag":"","ra":"121773619-0","cpf":"517.115.898-37","di":"","drive":"","ficha":"","cont":"","sd":""},{"nome":"Flavio Yoshihara Firmino","sit":"Ativo","sx":"Masc","ens":"Ensino Médio","ano":"EM 1º","agr":"EM","per":"matutino","hor":"07h às 12h20","ext":"","nasc":"23/01/2011","nd":23,"nm":1,"tel":"(11) 97681-7326","email":"flavioyoshihara@escolaaguai.com","cep":"04302-080","logr":"Rua Antônio Calixto Abrão","bairro":"São Judas","cidade":"São Paulo","est":"SP","num":"81","mn":"Vanessa Yoshihara","mt":"11 97681 7326","me":"vanny.y@uol.com.br","pn":"","pt":"(11) 96455-0031","pe":"crislegal.sp@gmail.com","dm":"","ck":"","dov":"Conhecer","diag":"chamar","ra":"116593184-9","cpf":"537.360.918-85","di":"OK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Gabriel Felipe Martins Bruno","sit":"Ativo","sx":"Masc","ens":"Ensino Médio","ano":"EM 1º","agr":"EM","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"15/08/2009","nd":15,"nm":8,"tel":"","email":"gfelipemartins@escolaaguai.com","cep":"","logr":"","bairro":"","cidade":"","est":"","num":"","mn":"Marcia Mendonça Martins Bruno","mt":"(11) 97534-9927","me":"marciambruno@hotmail.com","pn":"","pt":"(11) 99878-8309","pe":"mbruno0007@gmail.com","dm":"","ck":"","dov":"Colégio Ressurreição","diag":"","ra":"110113528-1","cpf":"538.707.798-10","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Leonardo Ramos Mangini","sit":"Ativo","sx":"Masc","ens":"Ensino Médio","ano":"EM 1º","agr":"EM","per":"Período Estendido","hor":"8h","ext":"","nasc":"03/03/2010","nd":3,"nm":3,"tel":"(11) 994811669","email":"leonardomangini@escolaaguai.com","cep":"04295-001","logr":"Avenida Coronel José Pires de Andrade","bairro":"Vila Vera","cidade":"São Paulo","est":"SP","num":"850 apto 94","mn":"Thais de Fátima Ramos","mt":"11 97746 2614","me":"Thaisrr@yahoo.com.br","pn":"","pt":"(11) 96364-1443","pe":"David.abreu.mangini@gmail.com","dm":"","ck":"","dov":"São Matheus","diag":"chamar","ra":"113007109-1","cpf":"545.150.448-26","di":"","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Miguel Silveira Leal","sit":"Ativo","sx":"Masc","ens":"Ensino Médio","ano":"EM 1º","agr":"EM","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"07/02/2011","nd":7,"nm":2,"tel":"11 93232-2927","email":"miguelsilveira@escolaaguai.com","cep":"04316070","logr":"Rua São Wenceslau","bairro":"Vila Guarani (Z Sul)","cidade":"São Paulo","est":"SP","num":"11","mn":"Juliana Silveira Leal","mt":"11957473477","me":"juliana.silveiraleal@outlook.com","pn":"","pt":"11954073477","pe":"deniswleal@gmail.com","dm":"","ck":"Indicação","dov":"Colégio Ressurreição","diag":"chamar","ra":"114813237-5","cpf":"548.556.438-07","di":"OK","drive":"ok","ficha":"ok","cont":"ok","sd":"ok"},{"nome":"Thaís Hajj Roffe","sit":"Ativo","sx":"Fem","ens":"Ensino Médio","ano":"EM 1º","agr":"EM","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"30/05/2011","nd":30,"nm":5,"tel":"","email":"thaisroffe@escolaaguai.com","cep":"01509-001","logr":"Rua Jose Getulio","bairro":"Liberdade","cidade":"São Paulo","est":"SP","num":"339","mn":"Glaucia Noeli Maroso Hajj","mt":"11 99113-1337","me":"glaucia.hajj@gmail.com","pn":"","pt":"","pe":"","dm":"","ck":"","dov":"Colégio Paulo de Tarso","diag":"chamar","ra":"115524129-0","cpf":"442.703.268-08","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Clara Félix da Costa","sit":"Ativo","sx":"Fem","ens":"Ensino Médio","ano":"EM 2º","agr":"EM","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"01/10/2009","nd":1,"nm":10,"tel":"1191404-8909","email":"clarafelix@escolaaguai.com","cep":"04317-000","logr":"Rua Domiciano Leite Ribeiro","bairro":"Vila Guarani (Z Sul)","cidade":"São Paulo","est":"SP","num":"51","mn":"Iana Marcela Leite da Costa","mt":"11 99210-1114","me":"iana.mlcosta@gmail.com","pn":"","pt":"11 99107-5713","pe":"soulcosta@gmail.com","dm":"05/01/2026","ck":"","dov":"Colégio Ressurreição","diag":"chamar","ra":"112013883-8","cpf":"545.088.638-17","di":"OK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Lavínia Vitória Oliveira Reis","sit":"Ativo","sx":"Fem","ens":"Ensino Médio","ano":"EM 2º","agr":"EM","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"05/10/2008","nd":5,"nm":10,"tel":"11 95826-7145","email":"laviniareis@escolaaguai.com","cep":"04290-000","logr":"Rua Antônio Carlos da Fonseca","bairro":"Jardim da Saúde","cidade":"São Paulo","est":"SP","num":"404","mn":"Letícia Millar De Melo L. O. Medeiros","mt":"11 98525-3266","me":"leticiamillar@gmail.com","pn":"","pt":"11 94017-7892","pe":"fernandoreis2805@gmail.com","dm":"03/11/2025","ck":"","dov":"Colégio Democrático","diag":"chamar","ra":"113485415-8","cpf":"430.375.068-90","di":"OK","drive":"incompleta","ficha":"ok","cont":"","sd":"ok"},{"nome":"Luiz Felipe Freire Pereira","sit":"Ativo","sx":"Masc","ens":"Ensino Médio","ano":"EM 2º","agr":"EM","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"15/12/2009","nd":15,"nm":12,"tel":"11947352635","email":"luizfelipefreire@escolaaguai.com","cep":"04317-000","logr":"Rua Domiciano Leite Ribeiro","bairro":"Vila Guarani (Z Sul)","cidade":"São Paulo","est":"SP","num":"51 ao 173","mn":"Jumara Freite Pereira","mt":"","me":"","pn":"","pt":"11947352635","pe":"felipe_cnsultoria@hotmail.com","dm":"18/12/2024","ck":"Indicação","dov":"Escola Arco Baleno","diag":"chamar","ra":"110276833-9","cpf":"549.969.138-00","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Maria Eduarda dos Santos Paixão","sit":"Ativo","sx":"Fem","ens":"Ensino Médio","ano":"EM 2º","agr":"EM","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"13/09/2009","nd":13,"nm":9,"tel":"","email":"mariaeduardapaixao@escolaaguai.com","cep":"04415-140","logr":"R. Miguel de Guevara","bairro":"Vila Capela","cidade":"São Paulo","est":"SP","num":"11","mn":"Valdirene Teixeiria dos Santos","mt":"11 95406 7533","me":"teixeiravaldirene69@gmail.com","pn":"","pt":"(11) 96546-9694","pe":"otavianocoelhopaixao@gmail.com","dm":"","ck":"","dov":"José de Alencar","diag":"","ra":"116273697-5","cpf":"421.769.008-80","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Matheus Rodrigues Tsuruda","sit":"Ativo","sx":"Masc","ens":"Ensino Médio","ano":"EM 2º","agr":"EM","per":"Período Estendido","hor":"8h","ext":"Todas","nasc":"04/06/2009","nd":4,"nm":6,"tel":"(11)999027600","email":"matheustsuruda@escolaaguai.com","cep":"04293-000","logr":"Rua do Boqueirão","bairro":"Saúde","cidade":"São Paulo","est":"SP","num":"185","mn":"Patricia rodrigues dos santos","mt":"11 9992 7600","me":"Patyshy@hotmail.com","pn":"","pt":"(11) 99344-3435","pe":"tpd.tsuruda@gmail.com","dm":"","ck":"","dov":"Veruska Colégio","diag":"chamar","ra":"115611477-9","cpf":"431.507.678-30","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Miguel Perilo Duarte","sit":"Ativo","sx":"Masc","ens":"Ensino Médio","ano":"EM 2º","agr":"EM","per":"matutino","hor":"7h as 12h20","ext":"","nasc":"16/12/2009","nd":16,"nm":12,"tel":"(11) 98755-1665","email":"miguelperilo@escolaaguai.com","cep":"04150-000","logr":"Rua Ribeiro Lacerda","bairro":"Bosque da Saúde","cidade":"São Paulo","est":"SP","num":"593","mn":"Renata Matozo Perilo Duarte","mt":"11 95435 3186","me":"juliana.garrido@yahoo.com","pn":"","pt":"(11) 98318-7402","pe":"grapixo@gmail.com","dm":"18/10/2024","ck":"","dov":"Colégio São José - Sion Ipiranga","diag":"chamar","ra":"115634364-1","cpf":"530.662.258-52","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Breno Maia da Silva Prado","sit":"Ativo","sx":"Masc","ens":"Ensino Médio","ano":"EM 3º","agr":"EM","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"30/12/2008","nd":30,"nm":12,"tel":"","email":"brenomaia@escolaaguai.com","cep":"04313-002","logr":"Avenida Leonardo da Vinci","bairro":"Vila Guarani (Z Sul)","cidade":"São Paulo","est":"SP","num":"2160","mn":"Lirie Aparecida Lopes da Silva","mt":"11 96846 7347","me":"lirielopes@gmail.com","pn":"","pt":"(11) 99118-9382","pe":"","dm":"05/02/2025","ck":"","dov":"São Matheus","diag":"chamar","ra":"111141304-6","cpf":"497.275.738-86","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Lucas Marcelo de Lima Generoso Peixoto","sit":"Ativo","sx":"Fem","ens":"Ensino Médio","ano":"EM 3º","agr":"EM","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"22/08/2008","nd":22,"nm":8,"tel":"(12) 99672-2451","email":"lucasmarcelolima@escolaaguai.com","cep":"04349-020","logr":"Rua das Canjeranas","bairro":"Vila Parque Jabaquara","cidade":"São Paulo","est":"SP","num":"501","mn":"Lindalva Pereira de Lima Generoso Peixoto","mt":"11 96369 9550","me":"lindalvappeixoto@gmail.com","pn":"","pt":"(11) 97327-6976","pe":"paulo.herbert@gmail.com","dm":"16/12/2024","ck":"indicação","dov":"Alberto Levy Professor","diag":"","ra":"114657422-8","cpf":"516.602.548-25","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Pedro Michel Ribeira","sit":"Ativo","sx":"Masc","ens":"Ensino Médio","ano":"EM 3º","agr":"EM","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"18/06/2007","nd":18,"nm":6,"tel":"","email":"pedroribera@escolaaguai.com","cep":"04319-010","logr":"Rua Santo Estácio","bairro":"Cidade Vargas","cidade":"São Paulo","est":"SP","num":"379","mn":"Dolores Michel Ribera","mt":"11 97291 6558","me":"Lolafastdecor@gmail.com","pn":"","pt":"","pe":"","dm":"","ck":"","dov":"Janjão","diag":"","ra":"111066023-6","cpf":"498.844.788-05","di":"OK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Nina Noronha Novo","sit":"Inativo","sx":"Fem","ens":"Fundamental I","ano":"5º","agr":"Agrupada III ano 2","per":"Período Estendido","hor":"8h às 18h","ext":"Todas","nasc":"21/02/2016","nd":21,"nm":2,"tel":"","email":"ninanoronho@escolaaguai.com","cep":"04321-002","logr":"Rua dos Buritis","bairro":"Jardim Oriental","cidade":"São Paulo","est":"SP","num":"685","mn":"Cintia Noronha Novo","mt":"11 95843 0673","me":"noronha.cintia@gmail.com","pn":"","pt":"(11) 98421-7817","pe":"marcospn@gmail.com","dm":"21/02/2022","ck":"","dov":"Emei Laudo Ferreira de Camargo","diag":"","ra":"121.314.765-7","cpf":"569.681.898-60","di":"","drive":"","ficha":"","cont":"","sd":""},{"nome":"Sara Lopes Fernandes","sit":"Ativo","sx":"Fem","ens":"Ensino Médio","ano":"EM 3º","agr":"EM","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"21/04/2008","nd":21,"nm":4,"tel":"(11) 97151-0070","email":"saralopes@escolaaguai.com","cep":"04171-000","logr":"Rua Sebastiano Mazzoni","bairro":"Vila Moraes","cidade":"São Paulo","est":"SP","num":"871","mn":"Geni Bernardo da Silva Fernandes","mt":"11 99217 2024","me":"sifernandes86@hotmail.com","pn":"","pt":"(11) 97113-8606","pe":"raimundo@afrferrentas.com.br","dm":"18/10/2024","ck":"","dov":"Colégio Rodrigues Dias","diag":"chamar","ra":"112044063-4","cpf":"506.398.418-56","di":"OK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Alan Galvão de França Aziz","sit":"Ativo","sx":"Masc","ens":"Educação Infantil","ano":"0º","agr":"Agrupada I ano 1","per":"Meio-Período Estendido","hor":"6h","ext":"","nasc":"06/07/2022","nd":6,"nm":7,"tel":"","email":"alanaziz@escolaaguai.com","cep":"04330-020","logr":"Av. Francisco de Paula Quintanilha Ribeiro","bairro":"Vila Campestre","cidade":"São Paulo","est":"SP","num":"400","mn":"Patricia Galvão de França Aziz","mt":"(12) 98268-3134","me":"pagafras@gmail.com","pn":"","pt":"(11) 94973-3340","pe":"allan_aziz@yahoo.com.br","dm":"28/11/2025","ck":"Site/Google","dov":"Colégio Better Education","diag":"","ra":"126084510-2","cpf":"603925248-05","di":"OK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Laura Aya Doi","sit":"Ativo","sx":"Fem","ens":"Educação Infantil","ano":"0º","agr":"Agrupada I ano 1","per":"Vespertino","hor":"13h às 17h30","ext":"","nasc":"13/09/2022","nd":13,"nm":9,"tel":"","email":"lauradoi@escolaaguai.com","cep":"04313-210","logr":"Rua Maracá","bairro":"Vila Guarani (Z Sul)","cidade":"São Paulo","est":"SP","num":"739","mn":"Priscila Mari Jodai Doi","mt":"11  98068 6189","me":"pjodai@yahoo.com","pn":"","pt":"(11) 97620-0857","pe":"doi_thiago@hotmail.com","dm":"","ck":"Irmã","dov":"Ateliê Quintal da Aprendizagem","diag":"","ra":"126082627-2","cpf":"605.195.218-70","di":"OK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Maya Galvão de França Aziz","sit":"Ativo","sx":"Fem","ens":"Educação Infantil","ano":"0º","agr":"Agrupada I ano 1","per":"Meio-Período Estendido","hor":"6h","ext":"","nasc":"06/07/2022","nd":6,"nm":7,"tel":"","email":"mayaaziz@escolaaguai.com","cep":"04330-020","logr":"Av. Francisco de Paula Quintanilha Ribeiro","bairro":"Vila Campestre","cidade":"São Paulo","est":"SP","num":"400","mn":"Patricia Galvão de França Aziz","mt":"(12) 98268-3134","me":"pagafras@gmail.com","pn":"","pt":"(11) 94973-3340","pe":"allan_aziz@yahoo.com.br","dm":"28/11/2025","ck":"Site/Google","dov":"Colégio Better Education","diag":"","ra":"126084500-X","cpf":"603925318-52","di":"OK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Letícia Ribeiro Alves","sit":"Inativo","sx":"Fem","ens":"Fundamental II","ano":"6º","agr":"Agrupada IV","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"22/06/2014","nd":22,"nm":6,"tel":"","email":"leticiaribeiro@escolaaguai.com","cep":"04330-080","logr":"Rua Bento Coelho da Silveira","bairro":"Vila Campestre","cidade":"São Paulo","est":"SP","num":"100 apto 101","mn":"Samaia Cristina Lopes dos Santos","mt":"11 98465 9517","me":"cristina_sah@hotmail.com","pn":"","pt":"(11) 958512300","pe":"","dm":"19/02/2024","ck":"Indicação","dov":"Escola Adventista Cidade Ademar","diag":"","ra":"115781943-6","cpf":"","di":"","drive":"","ficha":"","cont":"","sd":""},{"nome":"Miguel Fernandes Cavalcante","sit":"Inativo","sx":"Masc","ens":"Fundamental II","ano":"6º","agr":"","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"17/07/2014","nd":17,"nm":7,"tel":"","email":"miguelfernandes@escolaaguai.com","cep":"04331-020","logr":"Rua Brasilina Fonseca","bairro":"Vila Campestre","cidade":"São Paulo","est":"SP","num":"255 apto 82 bloco 2","mn":"Débora da Silva Fernandes Cavalcante","mt":"11 95435 7908","me":"deboralimaf2017@yahoo.com","pn":"","pt":"(11) 9543-57908","pe":"marcoantonio.cavalcante@gmail.com","dm":"10/09/2024","ck":"Novo Passo","dov":"Escola Adventista de Américanópolis","diag":"*","ra":"116186640-1","cpf":"568.909.468-47","di":"","drive":"","ficha":"","cont":"","sd":""},{"nome":"Miguel Gibello Gatti Florencio","sit":"Ativo","sx":"Masc","ens":"Educação Infantil","ano":"0º","agr":"Agrupada I ano 1","per":"Período Estendido","hor":"10h","ext":"","nasc":"03/06/2022","nd":3,"nm":6,"tel":"","email":"miguelgibello@escolaaguai.com","cep":"04317-230","logr":"Rua Inajatuba","bairro":"Vila Guarani (Z Sul)","cidade":"São Paulo","est":"SP","num":"175","mn":"Clarissa Silvestre Pedro","mt":"(11) 96414-6192","me":"cla.silvestre1@gmail.com","pn":"","pt":"(11) 95287-3091","pe":"brunogibello1@gmail.com","dm":"","ck":"","dov":"Professor de Física","diag":"","ra":"124200419-1","cpf":"603.177.428-33","di":"NOK","drive":"Não enviada","ficha":"ok","cont":"enviada","sd":"ok"},{"nome":"Mayumi Quirino","sit":"Ativo","sx":"Fem","ens":"Fundamental I","ano":"8º","agr":"Agrupada III ano 2","per":"Matutino","hor":"07h às 12h20","ext":"Circo, Teatro","nasc":"26/01/2012","nd":26,"nm":1,"tel":"","email":"mayumiquirino@escolaaguai.com","cep":"04311-000","logr":"Avenida do Café","bairro":"Vila Guarani (Z Sul)","cidade":"São Paulo","est":"SP","num":"400 - Ap 43","mn":"Cristiane Sacuragui Quirino","mt":"11 98158 6766","me":"cris.sacuragui@gmail.com","pn":"","pt":"(11) 99336-0434","pe":"aoquirino@hotmail.com","dm":"28/08/2024","ck":"","dov":"Janjão","diag":"","ra":"114.899.078-1","cpf":"559.113.448-31","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Maria Moreira Sena","sit":"Ativo","sx":"Fem","ens":"Educação Infantil","ano":"0º","agr":"Agrupada I ano 1","per":"Período Estendido","hor":"10h às 19h","ext":"","nasc":"03/08/2023","nd":3,"nm":8,"tel":"","email":"mariasena@escolaaguai.com","cep":"","logr":"","bairro":"","cidade":"","est":"SP","num":"673","mn":"Amanda Faria Moreira Sena","mt":"11 99523 7753","me":"amandamoreirasena@gmai.com","pn":"","pt":"(11) 96418-7753","pe":"brunnosena@hotmail.com","dm":"","ck":"Irmãos estudam aqui","dov":"Primeira Escola","diag":"","ra":"126082190-0","cpf":"","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Heitor Zerbini da Silva","sit":"Ativo","sx":"Masc","ens":"Educação Infantil","ano":"0º","agr":"Agrupada I ano 2","per":"Vespertino","hor":"13h às 17h30","ext":"","nasc":"20/04/2021","nd":20,"nm":4,"tel":"","email":"heitorzerbini@escolaaguai.com","cep":"04320-050","logr":"Rua Tuparaí","bairro":"Cidade Vargas","cidade":"São Paulo","est":"SP","num":"74","mn":"Maisa Zerbini Cardoso","mt":"11 95370 7037","me":"maisacardoso1302@gmail.com","pn":"","pt":"(11)95916-8582","pe":"gabriel.silva.oliveira19@gmail.com","dm":"10/09/2024","ck":"Professor","dov":"1ª escola","diag":"chamar","ra":"124302043-x","cpf":"593.143.728-20","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Helena Pantoja Danze Lopes","sit":"Ativo","sx":"Fem","ens":"Educação Infantil","ano":"0º","agr":"Agrupada I ano 2","per":"Vespertino","hor":"13h às 17h30","ext":"","nasc":"03/01/2022","nd":3,"nm":1,"tel":"","email":"helenadanze@escolaaguai.com","cep":"04334-050","logr":"Rua Coroa Imperial","bairro":"Vila Fachinni","cidade":"São Paulo","est":"SP","num":"279","mn":"Aline Pantoja Danze","mt":"(11) 94686-6775","me":"aline_danze@hotmail.com","pn":"","pt":"(11) 98182-7354","pe":"fe.tl@hotmail.com","dm":"","ck":"Escolas Parceiras","dov":"Escola Baby Dada","diag":"","ra":"125967765-5","cpf":"59916696861","di":"OK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Isa Yumi Akamine Giroldo","sit":"Ativo","sx":"Fem","ens":"Educação Infantil","ano":"0º","agr":"Agrupada I ano 2","per":"Vespertino","hor":"13h às 17h30","ext":"","nasc":"11/04/2022","nd":11,"nm":4,"tel":"11 959636176","email":"isayumiakaminegiroldo@escolaaguai.com","cep":"04311-080","logr":"Rua Humberto de Campos","bairro":"Vila Guarani (Z Sul)","cidade":"São Paulo","est":"SP","num":"67","mn":"Adriana Tiemi Akamine","mt":"11 9596 36176","me":"Akamine.vet@outlook.com","pn":"","pt":"(11) 99435-9188","pe":"fg.giroldo@hotmail.com","dm":"18/09/2024","ck":"Irmão","dov":"Ateliê Quintal da Aprendizagem","diag":"","ra":"125418352-8","cpf":"601.911.308-69","di":"NOK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Laís Araujo Giovaninni","sit":"Ativo","sx":"Fem","ens":"Educação Infantil","ano":"0º","agr":"Agrupada I ano 2","per":"Período Estendido","hor":"8h","ext":"","nasc":"20/09/2021","nd":20,"nm":9,"tel":"","email":"laisaraujogiovaninni@escolaaguai.com","cep":"04349000","logr":"Rua das Grumixamas","bairro":"Vila Parque Jabaquara","cidade":"São Paulo","est":"SP","num":"715","mn":"Paloma Araujo de Souza","mt":"11 96235-8158","me":"pa.araujo.souza@gmail.com","pn":"","pt":"11 96784-9765","pe":"lucasmoreira.09@hotmail.com","dm":"14/10/2024","ck":"Indicação","dov":"Objetivo Saint Klaus","diag":"","ra":"123929958-8","cpf":"596.804.688-01","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Benicio Cavalcante Lopes","sit":"Ativo","sx":"Masc","ens":"Educação Infantil","ano":"0º","agr":"Agrupada I ano 3","per":"Vespertino","hor":"13h às 17h30","ext":"","nasc":"07/02/2021","nd":7,"nm":2,"tel":"","email":"beniciolopes@escolaaguai.com","cep":"04320-110","logr":"Rua Itaiara","bairro":"Cidade Vargas","cidade":"São Paulo","est":"SP","num":"36","mn":"Débora Ribeiro Cavalcante Lopes","mt":"11  98747 9789","me":"ribeirocavalcante@gmail.com","pn":"","pt":"(11)994222149","pe":"luiseduardodesouzalopes@gmail.com","dm":"","ck":"Irmã","dov":"Primiera Escola","diag":"","ra":"122828362-X","cpf":"591.376.828-06","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Calebe Camilo Santana","sit":"Ativo","sx":"Masc","ens":"Educação Infantil","ano":"0º","agr":"Agrupada I ano 3","per":"Meio Período","hor":"4h","ext":"","nasc":"16/04/2021","nd":16,"nm":4,"tel":"","email":"calebecamilosantana@escolaaguai.com","cep":"04330-020","logr":"Avenida Francisco de Paula Quintanilha Ribeiro","bairro":"Vila Campestre","cidade":"São Paulo","est":"SP","num":"246, apt.74 BL A","mn":"Isabella Cristina Porto Santana","mt":"11 94175 0680","me":"bella.c.santana@gmail.com","pn":"","pt":"(11) 94275-0680","pe":"andreportocamilo@gmail.com","dm":"29/08/2024","ck":"Fachada","dov":"Centro de Educação Infantil Vera Alvarenga","diag":"chamar","ra":"123830525-8","cpf":"592.966.228-24","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Catarina Martins Brandão","sit":"Ativo","sx":"Fem","ens":"Educação Infantil","ano":"0º","agr":"Agrupada I ano 3","per":"Período Estendido","hor":"08h às 14h","ext":"","nasc":"14/05/2019","nd":14,"nm":5,"tel":"","email":"catarinamartins@escolaaguai.com","cep":"04316-060","logr":"Rua Bicudo de Brito","bairro":"Vila Guarani (Z Sul)","cidade":"São Paulo","est":"SP","num":"881","mn":"Lidiane martins","mt":"11947500406","me":"Lidianemartibs95@gmail.com","pn":"","pt":"11964104179","pe":"Doug_brandao@hotmail.com","dm":"16/09/2025","ck":"Escolas Parceiras","dov":"Trem Azul - Jabaquara","diag":"chamar","ra":"124538930-0","cpf":"571.841.548-00","di":"OK","drive":"ok","ficha":"ok","cont":"ok","sd":"ok"},{"nome":"Caio Adriano Faustino da Silva","sit":"Inativo","sx":"Masc","ens":"Fundamental II","ano":"6º","agr":"","per":"Vespertino","hor":"13h as 17h30","ext":"","nasc":"23/07/2014","nd":23,"nm":7,"tel":"","email":"caioadriano@escolaaguai.com","cep":"04338-170","logr":"Rua Vilar Formoso","bairro":"Americanópolis","cidade":"São Paulo","est":"SP","num":"48","mn":"Tatiana de Fátima Feitosa da Silva","mt":"11 91095 7628","me":"silvatiana2307@gmail.com","pn":"","pt":"(11)91095-7628","pe":"drifaustino54@gmail.com","dm":"","ck":"","dov":"EMEF Ana Maria Alves Benetti","diag":"","ra":"121.854.313-9","cpf":"576.301.768-48","di":"","drive":"","ficha":"","cont":"","sd":""},{"nome":"Gabriel Ribeiro de Moura","sit":"Ativo","sx":"Masc","ens":"Educação Infantil","ano":"0º","agr":"Agrupada I Ano 3","per":"Período Estendido","hor":"10h","ext":"","nasc":"14/07/2020","nd":14,"nm":7,"tel":"","email":"gabrielribeiro@escolaaguai.com","cep":"04349-190","logr":"Rua Parnaíba Paoliello","bairro":"Jardim Oriental","cidade":"São Paulo","est":"SP","num":"82","mn":"Nathalia Pacheco Ribeiro","mt":"11992001333","me":"nathalia.npr@hotmail.com","pn":"","pt":"11986535066","pe":"wjm.moura@gmail.com","dm":"","ck":"Fachada","dov":"CEI - Vera Alvarenga","diag":"","ra":"123240840-2","cpf":"586.759.488-24","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Manuela Da Costa Verri","sit":"Ativo","sx":"Fem","ens":"Educação Infantil","ano":"0º","agr":"Agrupada I ano 3","per":"Período Estendido","hor":"8h","ext":"","nasc":"10/06/2021","nd":10,"nm":6,"tel":"","email":"manueladacostaverri@escolaaguai.com","cep":"04321-002","logr":"Rua dos Buritis","bairro":"Jardim Oriental","cidade":"São Paulo","est":"SP","num":"925, apt. 82- BL 2","mn":"Patrícia Gomez da Costa Verri","mt":"11 98369 8415","me":"patriciaverri@yahoo.com.br","pn":"","pt":"(11)98457-2383","pe":"marcusverri@yahoo.com.br","dm":"18/09/2024","ck":"Vila Montessori","dov":"Montessori Barcelona","diag":"","ra":"124976839-1","cpf":"594.191.008-80","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Miguel Taciro Rodrigues","sit":"Ativo","sx":"Masc","ens":"Educação Infantil","ano":"0º","agr":"Agrupada I ano 3","per":"Vespertino","hor":"13h às 17h30","ext":"","nasc":"04/10/2019","nd":4,"nm":10,"tel":"","email":"migueltacirorodrigues@escolaaguai.com","cep":"04377-190","logr":"Rua Boçoroca","bairro":"Vila Mira","cidade":"São Paulo","est":"SP","num":"181","mn":"Liana Naomy Taciro","mt":"11 99297 3224","me":"lia_naomy@yahoo.com.br","pn":"","pt":"(11)994517594","pe":"flavioluciano.rs@gmail.com","dm":"14/09/2024","ck":"Indicação","dov":"CEI Padre Gregório Westrupp","diag":"chamar","ra":"123794242-1","cpf":"577.851.358-51","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Ravi Barbosa Nadur","sit":"Ativo","sx":"Masc","ens":"Fundamental I","ano":"4º","agr":"Agrupada III ano 1","per":"Vespertino","hor":"13h às 17h30","ext":"","nasc":"06/12/2017","nd":6,"nm":12,"tel":"","email":"ravinadur@escolaaguai.com","cep":"04348-070","logr":"Rua Jurupari","bairro":"Jardim Oriental","cidade":"São Paulo","est":"SP","num":"591","mn":"Alexandra Evaristo Barbosa","mt":"11 976707-3888","me":"alee.evaa@outlook.com","pn":"","pt":"11 95210-4878","pe":"rafael.nadur.rosa@gmail.com","dm":"","ck":"","dov":"E.E.P.G Almirante Barroso","diag":"chamar","ra":"122194023-5","cpf":"539.118.678-16","di":"OK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Alice Habermann Saadeh Silva","sit":"Ativo","sx":"Fem","ens":"Fundamental I","ano":"5º","agr":"Agrupada III ano 2","per":"Vespertino","hor":"13h às 17h30","ext":"","nasc":"11/01/2016","nd":11,"nm":1,"tel":"","email":"alicesaadeh@escolaaguai.com","cep":"04317-251","logr":"Travessa Silésia","bairro":"Vila Guarani (Z Sul)","cidade":"São Paulo","est":"SP","num":"11","mn":"Luciana Habermann Silva","mt":"1198591-9794","me":"luciana.habermann@gmail.com","pn":"","pt":"(11)98484-3576","pe":"wilson.saadeh@gmail.com","dm":"29/01/2025","ck":"","dov":"Colégio Lumen Vitae","diag":"chamar","ra":"120716835-X","cpf":"568.164.328-0","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Felipe Rodrigues Cardoso Evangelista","sit":"Ativo","sx":"Masc","ens":"Fundamental II","ano":"6º","agr":"Agrupada IV","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"24/01/2015","nd":24,"nm":1,"tel":"","email":"feliperodrigues@escolaaguai.com","cep":"04346-040","logr":"Rua Taquaruçu","bairro":"Vila Parque Jabaquara","cidade":"São Paulo","est":"SP","num":"685","mn":"Denise Rodrigues Cardoso","mt":"11 95248 7168","me":"ddniserc@yahoo.com.br","pn":"","pt":"(11)98396-0521","pe":"developer_d@msn.com","dm":"","ck":"Happy Day","dov":"Happy Day","diag":"chamar","ra":"114.929.967-8","cpf":"494.380.158-76","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Gabriela Perilo Duarte","sit":"Ativo","sx":"Fem","ens":"Fundamental II","ano":"6º","agr":"Agrupada IV","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"14/10/2014","nd":14,"nm":10,"tel":"(11) 97785-1410","email":"gabrielaperilo@escolaaguai.com","cep":"04150-000","logr":"Rua Ribeiro Lacerda","bairro":"Bosque da Saúde","cidade":"São Paulo","est":"SP","num":"593","mn":"Renata Matozo Perilo Duarte","mt":"11 95435 3186","me":"Re.perilo@gmail.com","pn":"","pt":"(11) 98318-7402","pe":"grapixo@gmail.com","dm":"","ck":"","dov":"Colégio Peter Pan","diag":"","ra":"116512563-8","cpf":"530.661.358-61","di":"","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Henrique La Terra","sit":"Ativo","sx":"Masc","ens":"Fundamental II","ano":"6º","agr":"Agrupada IV","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"28/04/2014","nd":28,"nm":4,"tel":"","email":"henriquelaterra@escolaaguai.com","cep":"04317-190","logr":"Travessa Bento Rufino","bairro":"Vila Guarani (Z Sul)","cidade":"São Paulo","est":"SP","num":"31","mn":"Gabrielle Renata Cremasco La Terra","mt":"11 98521 5695","me":"cremasco.gabrielle@gmail.com","pn":"","pt":"(11) 98149-7149","pe":"Terrasesignpropaganda@gmail.com","dm":"13/09/2024","ck":"","dov":"Leonor Mendes Barros Dona EMEI","diag":"chamar","ra":"120.677.965-2","cpf":"570.709.698-13","di":"NOK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Larissa Ventura Plácido","sit":"Ativo","sx":"Fem","ens":"Fundamental II","ano":"6º","agr":"Agrupada IV","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"15/01/2015","nd":15,"nm":1,"tel":"","email":"larissaventura@escolaaguai.com","cep":"04323-060","logr":"Rua Santa Rita D'Oeste","bairro":"Vila do Encontro","cidade":"São Paulo","est":"SP","num":"","mn":"Maria Eugenia Ventura Mosteiro Placido","mt":"11 98141 6576","me":"laianevitoriapl30@gmail.com","pn":"","pt":"(11)98359-0089","pe":"","dm":"25/02/2022","ck":"Ex aluno","dov":"Arthur Wolff Netto Professor","diag":"","ra":"115.474.478-4","cpf":"56.697.688-92","di":"","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Matheus Mackey Gomes Lopes Vieira","sit":"Ativo","sx":"Masc","ens":"Fundamental II","ano":"6º","agr":"Agrupada IV","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"07/11/2014","nd":7,"nm":11,"tel":"","email":"matheusmackey@escolaaguai.com","cep":"04310-010","logr":"Rua Itatiaia","bairro":"Vila Guarani (Z Sul)","cidade":"São Paulo","est":"SP","num":"52 apto 45","mn":"Erica Mackey Martins de Assis Gomes","mt":"11 99106 8118","me":"ericamackey@hotmail.com","pn":"","pt":"11 99113-8202","pe":"clopes.contato@gmail.com","dm":"","ck":"","dov":"Caminho do Saber","diag":"chamar","ra":"116.160.553 -8","cpf":"491.355.828-55","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Mellanie Maia da Silva Prado","sit":"Ativo","sx":"Fem","ens":"Fundamental II","ano":"6º","agr":"Agrupada IV","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"11/09/2014","nd":11,"nm":9,"tel":"","email":"mellaniemaia@escolaaguai.com","cep":"04313-002","logr":"Avenida Leonardo da Vinci","bairro":"Vila Guarani (Z Sul)","cidade":"São Paulo","est":"SP","num":"2160","mn":"Lirie Aparecida Lopes da Silva","mt":"11 96846 7347","me":"lirielopes@gmail.com","pn":"","pt":"(11) 99118-9382","pe":"","dm":"","ck":"Irmão","dov":"Happy Day","diag":"chamar","ra":"122.291.861-4","cpf":"153.172.218-03","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Sophia Katsumi Glaser Abe","sit":"Ativo","sx":"Fem","ens":"Fundamental II","ano":"6º","agr":"Agrupada IV","per":"Período Estendido","hor":"8h","ext":"","nasc":"17/01/2014","nd":17,"nm":1,"tel":"","email":"sophiaglaser@escolaaguai.com","cep":"04323-060","logr":"Rua Santa Rita D'Oeste","bairro":"Vila do Encontro","cidade":"São Paulo","est":"SP","num":"227","mn":"Carly Martins Glaser","mt":"11 97049 3604","me":"glaser.carly@gmail.com","pn":"","pt":"","pe":"glaser.carly@gmail.com","dm":"13/09/2024","ck":"Ex aluno","dov":"Escola Angelos","diag":"chamar","ra":"116.155.104-9","cpf":"492.682.658-50","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Zoé dos Santos Machado","sit":"Ativo","sx":"Fem","ens":"Fundamental II","ano":"6º","agr":"Agrupada IV","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"16/07/2014","nd":16,"nm":7,"tel":"(44) 99824-3893","email":"zoemachado@escolaaguai.com","cep":"04152-100","logr":"Rua Calógero Calia","bairro":"Vila Santo Estefano","cidade":"São Paulo","est":"SP","num":"32","mn":"Lilian C. dos Santos Leite","mt":"44 99824-3893","me":"meni.santos1@gmail.com","pn":"","pt":"11 99685-4926","pe":"arthurmoita13@gmail.com","dm":"","ck":"Indicação","dov":"E.E Prof. Maria Ribeiro Guimarães Bueno","diag":"","ra":"125676548-X","cpf":"145.594.606-04","di":"OK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Beatriz Queiroz Ribeiro","sit":"Ativo","sx":"Fem","ens":"Fundamental II","ano":"7º","agr":"Agrupada IV","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"13/02/2013","nd":13,"nm":2,"tel":"","email":"beatrizqueiroz@escolaaguai.com","cep":"04347-080","logr":"Rua Vieira Portuense","bairro":"Jardim Oriental","cidade":"São Paulo","est":"SP","num":"130","mn":"Maria Fernanda Queiroz Ribeiro","mt":"11 5016 1558","me":"nandaqcruz@gmail.com","pn":"","pt":"(11)99389-0791","pe":"gu.fotografo@gmail.com","dm":"","ck":"","dov":"Arco Baleno","diag":"chamar","ra":"116.703.031-x","cpf":"466.392.798-00","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Gabriel Vianna de Oliveira","sit":"Ativo","sx":"Masc","ens":"Fundamental II","ano":"7º","agr":"Agrupada IV","per":"Período Estendido","hor":"10h","ext":"","nasc":"23/01/2013","nd":23,"nm":1,"tel":"","email":"gabrielvianna@escolaaguai.com","cep":"04151-080","logr":"Rua Macarani","bairro":"Bosque da Saúde","cidade":"São Paulo","est":"SP","num":"341","mn":"Renata Lima de Brito Vianna","mt":"11 97611 8697","me":"podepano@gmail.com","pn":"","pt":"(11) 98356-3838","pe":"anothervideobrain@gmail.com","dm":"","ck":"Indicação","dov":"Escola do Bairro","diag":"chamar","ra":"114581949-7","cpf":"486.258.598-10","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Giullia Maia da Silva Prado","sit":"Ativo","sx":"Fem","ens":"Fundamental II","ano":"7º","agr":"Agrupada IV","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"26/04/2013","nd":26,"nm":4,"tel":"","email":"giulliamaia@escolaaguai.com","cep":"04313-002","logr":"Avenida Leonardo da Vinci","bairro":"Vila Guarani (Z Sul)","cidade":"São Paulo","est":"SP","num":"2160","mn":"Lirie Aparecida Lopes da Silva","mt":"11 96846 7347","me":"lirielopes@gmail.com","pn":"","pt":"(11) 9118-9382","pe":"","dm":"","ck":"Irmão","dov":"Happy Day","diag":"","ra":"122291863-8","cpf":"153.172.648-80","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Guilherme Barbosa Basani","sit":"Ativo","sx":"Masc","ens":"Fundamental II","ano":"7º","agr":"Agrupada IV","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"07/10/2013","nd":7,"nm":10,"tel":"","email":"guilhermebasani@escolaaguai.com","cep":"04321-070","logr":"Rua das Seringueiras","bairro":"Vila Parque Jabaquara","cidade":"São Paulo","est":"SP","num":"373 apt 144 Acacias","mn":"Glaucia Aparecida Barbosa","mt":"11 98992 1041","me":"glaucia.barbosa17@gmail.com","pn":"","pt":"","pe":"","dm":"08/10/2024","ck":"Sigerman","dov":"Sigerman","diag":"","ra":"122.079.481-8","cpf":"493.352.408-42","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Larissa Temponi da Silva","sit":"Ativo","sx":"Fem","ens":"Fundamental II","ano":"7º","agr":"Agrupada IV","per":"Matutino","hor":"07h as 12h20","ext":"","nasc":"29/12/2013","nd":29,"nm":12,"tel":"","email":"larissatemponi@escolaaguai.com","cep":"04319-000","logr":"Rua Nelson Fernandes","bairro":"Cidade Vargas","cidade":"São Paulo","est":"SP","num":"50 apto 61 bl2","mn":"Alessandra temponi dos Santos","mt":"11 98362-7614","me":"aletemponi@gmail.com","pn":"","pt":"(11) 91363-7227","pe":"aletemponi@gmail.com","dm":"18/10/2024","ck":"","dov":"Guaracy nova era","diag":"","ra":"120394034-8","cpf":"542.592.048-23","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Lorenzo Fatinazi","sit":"Ativo","sx":"Masc","ens":"Fundamental II","ano":"7º","agr":"Agrupada IV","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"26/01/2013","nd":26,"nm":1,"tel":"","email":"lorenzofatinazi@escolaaguai.com","cep":"04320-120","logr":"Rua Itaguara","bairro":"Cidade Vargas","cidade":"São Paulo","est":"SP","num":"180, apto. 32 A","mn":"Melissa Moreira Fatinazi","mt":"11 99435 7737","me":"melissafatinazi@gmail.com","pn":"","pt":"(11) 99297-5753","pe":"victorfatinazi@gmail.com","dm":"","ck":"São Matheus","dov":"São Matheus","diag":"chamar","ra":"116.640.152-2","cpf":"467.910.468-64","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Marina Jesus de Sousa","sit":"Ativo","sx":"Fem","ens":"Fundamental II","ano":"7º","agr":"Agrupada IV","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"13/09/2013","nd":13,"nm":9,"tel":"","email":"marinadejesus@escolaaguai.com","cep":"04349-000","logr":"Rua das Grumixamas","bairro":"Vila Parque Jabaquara","cidade":"São Paulo","est":"SP","num":"334 - apto: 28","mn":"Lilian Jesus de Sousa","mt":"11 98365 6599","me":"lilianjesuss1979@gmail.com","pn":"","pt":"(11) 94756-0593","pe":"lilianjesuss1979@gmail.com","dm":"29/08/2024","ck":"Pesquisa pela internet","dov":"Lider Colégio Integrado","diag":"","ra":"122053487-0","cpf":"538.138.238-30","di":"OK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Miguel de Oliveira Alves","sit":"Ativo","sx":"Masc","ens":"Fundamental II","ano":"7º","agr":"Agrupada IV","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"29/09/2012","nd":29,"nm":9,"tel":"","email":"migueloliveira@escolaaguai.com","cep":"04403-070","logr":"Rua Bento Dias Botelho","bairro":"Vila Joaniza","cidade":"São Paulo","est":"SP","num":"20","mn":"Cristiane Costa de Oliveira","mt":"11 97168 0265","me":"cristianeoliveira132@gmail.com","pn":"","pt":"(11) 97566-0601","pe":"","dm":"","ck":"","dov":"Colégio Mosaico","diag":"chamar","ra":"121337839-4","cpf":"508.289.728-42","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Vitoria Nascimento Paladino","sit":"Ativo","sx":"Fem","ens":"Fundamental II","ano":"7º","agr":"Agrupada IV","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"28/06/2013","nd":28,"nm":6,"tel":"","email":"vitorianascimento@escolaaguai.com","cep":"04349-190","logr":"Rua Parnaíba Paoliello","bairro":"Jardim Oriental","cidade":"São Paulo","est":"SP","num":"74","mn":"Eliane do Nascimento","mt":"11 97985 8836","me":"elianejorge38@gmail.com","pn":"","pt":"(11)94873-6527","pe":"","dm":"03/09/2024","ck":"Irmão","dov":"Professora Flávia Vizibele Pirro","diag":"","ra":"116.764.443-8","cpf":"587.186.188-12","di":"OK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Anthony Miguel dos Santos Freitas","sit":"Ativo","sx":"Masc","ens":"Fundamental II","ano":"8º","agr":"Agrupada V","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"09/09/2012","nd":9,"nm":9,"tel":"(11) 96277-5927","email":"anthonymiguel@escolaaguai.com","cep":"09921-000","logr":"Avenida das Nações","bairro":"Taboão","cidade":"Diadema","est":"SP","num":"748","mn":"Ana Carolina dos Santos","mt":"11 95727 5199","me":"carol67show@gmail.com","pn":"","pt":"(11) 9695-9634","pe":"fabiano1684@hotmail.com","dm":"30/08/2024","ck":"Irmão","dov":"Jorge Amado EMEB","diag":"chamar","ra":"114488768-9","cpf":"557.680.508-92","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Arthur Canel Magaton","sit":"Ativo","sx":"Masc","ens":"Fundamental II","ano":"8º","agr":"Agrupada V","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"07/12/2012","nd":7,"nm":12,"tel":"(11) 98844-2109","email":"arthurmagaton@escolaaguai.com","cep":"04349-020","logr":"Rua das Canjeranas","bairro":"Vila Parque Jabaquara","cidade":"São Paulo","est":"SP","num":"431","mn":"Amanda Mendes Matos Magaton","mt":"11 99995 3595","me":"amanda.magaton@gmail.com","pn":"","pt":"(11) 99971-1927","pe":"everton.magaton@hotmail.com","dm":"20/09/2024","ck":"Trem Azul","dov":"Trem Azul","diag":"chamar","ra":"121.078.994-2","cpf":"479.263.988-37","di":"OK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Davi Yoshihara Firmino","sit":"Ativo","sx":"Masc","ens":"Fundamental II","ano":"8º","agr":"Agrupada V","per":"Matutino","hor":"7h as 12h20","ext":"","nasc":"26/05/2012","nd":26,"nm":5,"tel":"(11) 97681-7326","email":"daviyoshihara@escolaaguai.com","cep":"04302-080","logr":"Rua Antônio Calixto Abrão","bairro":"São Judas","cidade":"São Paulo","est":"SP","num":"81","mn":"Vanessa Yoshihara","mt":"11 97681 7326","me":"vanny.y@uol.com.br","pn":"","pt":"(11) 96455-0031","pe":"crislegal.sp@gmail.com","dm":"","ck":"Irmão","dov":"Conhecer","diag":"","ra":"121.154.553-2","cpf":"537.361.288-00","di":"OK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Frederico Gonçalves Craveiro","sit":"Ativo","sx":"Masc","ens":"Fundamental II","ano":"8º","agr":"Agrupada V","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"25/04/2012","nd":25,"nm":4,"tel":"","email":"fredericocraveiro@escolaaguai.com","cep":"04113-090","logr":"Rua Professor Macedo Soares","bairro":"Vila Mariana","cidade":"São Paulo","est":"SP","num":"125","mn":"Denise Gonçalves","mt":"11 98139 3110","me":"dns.gon@gmail.com","pn":"","pt":"(11) 98308-2747","pe":"fejoju3@gmail.com","dm":"03/09/2024","ck":"","dov":"Farid Eid","diag":"chamar","ra":"114.044.583-2","cpf":"455.160.958-75","di":"NOK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Isabella Victória Barbosa Amaral","sit":"Ativo","sx":"Fem","ens":"Fundamental II","ano":"8º","agr":"Agrupada V","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"17/03/2013","nd":17,"nm":3,"tel":"(11) 97874-2837","email":"isabellavictoriabarbosa@escolaaguai.com","cep":"04247-110","logr":"Rua apace","bairro":"Jd oriental","cidade":"São Paulo","est":"SP","num":"42","mn":"Joice Aparecida Barbosa","mt":"(11) 99247-4837","me":"joice1983@gmail.com","pn":"","pt":"(11) 95577-3621","pe":"Amaralrogger@gmail.com","dm":"10/09/2024","ck":"Sigerman","dov":"Sigerman","diag":"","ra":"121.078.895-0","cpf":"487.567.208-07","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Luan de Castro Silva","sit":"Ativo","sx":"Masc","ens":"Fundamental II","ano":"8º","agr":"Agrupada V","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"25/11/2012","nd":25,"nm":11,"tel":"","email":"luandecastrosilva@escolaaguai.com","cep":"04335-010","logr":"Rua Dois de Novembro","bairro":"Americanópolis","cidade":"São Paulo","est":"SP","num":"n.70","mn":"Luana de Castro Correa","mt":"11 96526 3050","me":"luanacorrea1@outlook.com.br","pn":"","pt":"11 97669 5965","pe":"sidnei.silva@pbecia.com","dm":"28/08/2024","ck":"","dov":"Colégio Educacional Guary Nova Era","diag":"chamar","ra":"113958225-2","cpf":"466.037.488 - 27","di":"OK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Lucas Garcia do Amaral","sit":"Ativo","sx":"Masc","ens":"Fundamental II","ano":"8º","agr":"Agrupada V","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"11/04/2011","nd":11,"nm":4,"tel":"(11) 96567-4710","email":"lucasamaral@escolaaguai.com","cep":"04309-011","logr":"Av. Eng. Armando de Arruda Pereira","bairro":"Vila Guarani","cidade":"São Paulo","est":"SP","num":"1677","mn":"Gabriela Alves Garcia","mt":"(11) 91353-9584","me":"gabriela.agarcia2105@gmail.com","pn":"","pt":"(11) 97030-4812","pe":"amandia-rocha@hotmail.com","dm":"27/04/2026","ck":"Indicação","dov":"","diag":"","ra":"114990380-6","cpf":"522.563.358-79","di":"OK","drive":"","ficha":"","cont":"","sd":""},{"nome":"Maria Clara Guimarães de Oliveira","sit":"Inativo","sx":"Fem","ens":"Ensino Médio","ano":"EM 1º","agr":"EM","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"20/05/2010","nd":20,"nm":5,"tel":"","email":"mariaguimaraesclara@escolaaguai.com","cep":"","logr":"","bairro":"","cidade":"","est":"SP","num":"180","mn":"Janaina Fernandes Guimarães de Oliveira","mt":"11958000061","me":"janaina.tgm@gmail.com","pn":"","pt":"11998157474","pe":"jtgoliveira@gmail.com","dm":"","ck":"Indicação","dov":"","diag":"","ra":"110.978.182-9","cpf":"55138664808","di":"","drive":"","ficha":"","cont":"","sd":""},{"nome":"Manuela Uviña Bernardo","sit":"Ativo","sx":"Fem","ens":"Fundamental II","ano":"8º","agr":"Agrupada V","per":"Período Estendido","hor":"07h às 16h","ext":"","nasc":"27/04/2012","nd":27,"nm":4,"tel":"(11)99449-5820","email":"manuelauvina@escolaaguai.com","cep":"04349-000","logr":"Rua das Grumixamas","bairro":"Vila Parque Jabaquara","cidade":"São Paulo","est":"SP","num":"233 ap 94","mn":"Katia Uvinã","mt":"11 99449 5820","me":"uvina@adv.oabsp.org.br","pn":"","pt":"(11) 99966-6290","pe":"Regishb@hotmail.com","dm":"07/10/2024","ck":"Sigerman","dov":"Sigerman","diag":"","ra":"121.079.035-X","cpf":"460.203.008.46","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Max Giglio de Souza","sit":"Ativo","sx":"Masc","ens":"Fundamental II","ano":"8º","agr":"Agrupada V","per":"Período Estendido","hor":"07h às 16h","ext":"Circo, Teatro","nasc":"17/11/2012","nd":17,"nm":11,"tel":"","email":"maxgiglio@escolaaguai.com","cep":"04311001","logr":"Avenida do Café","bairro":"Vila Guarani (Z Sul)","cidade":"São Paulo","est":"SP","num":"400, apt 116","mn":"Carla Surian Giglio","mt":"11 99196 9390","me":"carlagigliodesouza@gmail.com","pn":"","pt":"(11) 99196-9370","pe":"camu@bol.com.br","dm":"","ck":"","dov":"Janjão","diag":"chamar","ra":"113.283.153-2","cpf":"463.550.128-00","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Rodrigo D'agosto Rocha","sit":"Ativo","sx":"Masc","ens":"Fundamental II","ano":"8º","agr":"Agrupada V","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"09/04/2011","nd":9,"nm":4,"tel":"(11)99330-9400","email":"rodrigorocha@escolaaguai.com","cep":"04374-000","logr":"Rua Franklin Magalhães","bairro":"Vila Santa Catarina","cidade":"São Paulo","est":"SP","num":"","mn":"Katia Aparecida D'Agosto Silva","mt":"11 99373 8060","me":"katia.dagosto@hotmail.com","pn":"","pt":"(11) 99479-3521","pe":"rochar787@gmail.com","dm":"","ck":"","dov":"Emilie","diag":"chamar","ra":"120229549-6","cpf":"234.937.188-37","di":"OK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Danilo Silva Xavier","sit":"Ativo","sx":"Masc","ens":"Fundamental II","ano":"9º","agr":"Agrupada V","per":"Período Estendido","hor":"8h","ext":"","nasc":"13/05/2010","nd":13,"nm":5,"tel":"(11) 93301-6449","email":"daniloxavier@escolaaguai.com","cep":"04306-020","logr":"Rua Soares de Avellar","bairro":"Vila Monte Alegre","cidade":"São Paulo","est":"SP","num":"396","mn":"Gildevan Ferreira da Silva","mt":"11 96530 6178","me":"gildacabelereira13@gmail.com","pn":"","pt":"(11) 94697-7279","pe":"gildacabelereira13@gmail.com","dm":"07/02/2024","ck":"Ex aluno","dov":"Externato Santa'ana","diag":"","ra":"114728299-7","cpf":"431.833.838-02","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Gabriel Schulze","sit":"Ativo","sx":"Masc","ens":"Fundamental II","ano":"9º","agr":"Agrupada V","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"13/09/2011","nd":13,"nm":9,"tel":"(11)98401-6115","email":"gabrielschulze@escolaaguai.com","cep":"04317-230","logr":"Rua Inajatuba","bairro":"Vila Guarani (Z Sul)","cidade":"São Paulo","est":"SP","num":"95 casa 10","mn":"Mônica Schulze","mt":"11 98401 6115","me":"monicaheiderich@gmail.com","pn":"","pt":"11 98398 0416","pe":"rafaschulze@gmai.com","dm":"28/08/2024","ck":"Indicação","dov":"Ressurreição Colégio","diag":"chamar","ra":"115807867-5","cpf":"480.605.908-04","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Ingrid Silva Bianchi","sit":"Ativo","sx":"Fem","ens":"Fundamental II","ano":"9º","agr":"Agrupada V","per":"Período Estendido","hor":"8h","ext":"","nasc":"06/07/2011","nd":6,"nm":7,"tel":"","email":"ingridbianchi@escolaaguai.com","cep":"","logr":"","bairro":"","cidade":"","est":"","num":"","mn":"Cristiane Maria da Silva","mt":"11 94775 8348","me":"","pn":"","pt":"11947094753","pe":"","dm":"18/10/2024","ck":"","dov":"São Matheus","diag":"","ra":"120.792.380-1","cpf":"","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"João Braga Antunes","sit":"Ativo","sx":"Masc","ens":"Fundamental II","ano":"9º","agr":"Agrupada V","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"01/07/2011","nd":1,"nm":7,"tel":"11 99155-5309","email":"joaobragaantunes@escolaaguai.com","cep":"04330-020","logr":"Avenida Francisco de Paula Quintanilha Ribeiro","bairro":"Vila Campestre","cidade":"São Paulo","est":"SP","num":"342 apto 22b","mn":"Suzylane Braga Antunes","mt":"11986260098","me":"suzybragaantunes@yahoo.com.br","pn":"","pt":"1988322290","pe":"jshantunes@yahoo.com.br","dm":"18/11/2024","ck":"Indicação","dov":"Rede Decisão","diag":"chamar","ra":"114057232-5","cpf":"544.612.088-42","di":"OK","drive":"","ficha":"ok","cont":"","sd":"ok"},{"nome":"Miguel Perilo Duarte","sit":"Inativo","sx":"Masc","ens":"Ensino Médio","ano":"EM 2º","agr":"EM","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"16/12/2009","nd":16,"nm":12,"tel":"(11) 98755-1665","email":"miguelperilo@escolaaguai.com","cep":"04150-000","logr":"Rua Ribeiro Lacerda","bairro":"Bosque da Saúde","cidade":"São Paulo","est":"SP","num":"593","mn":"Renata Matozo Perilo Duarte","mt":"11 95435 3186","me":"juliana.garrido@yahoo.com","pn":"","pt":"(11) 98318-7402","pe":"grapixo@gmail.com","dm":"18/10/2024","ck":"","dov":"Colégio São José - Sion Ipiranga","diag":"","ra":"115634364-1","cpf":"530.662.258-52","di":"","drive":"","ficha":"","cont":"","sd":""},{"nome":"Julia Oliveira Souza","sit":"Ativo","sx":"Fem","ens":"Fundamental II","ano":"9º","agr":"Agrupada V","per":"Período Estendido","hor":"8h","ext":"","nasc":"15/02/2012","nd":15,"nm":2,"tel":"(11)97741-0174","email":"juliaoliveira@escolaaguai.com","cep":"04402-050","logr":"Avenida Manuel Augusto de Alvarenga","bairro":"Vila Marari","cidade":"São Paulo","est":"SP","num":"220","mn":"Fanile Silva Oliveira","mt":"11 96784 8815","me":"fannycat16@gmail.com","pn":"","pt":"(11)97428-8320","pe":"heliojulia1515@gmail.com","dm":"02/11/2024","ck":"","dov":"Dulce Carneiro","diag":"","ra":"114.495.174-4","cpf":"559.595.928-27","di":"OK","drive":"","ficha":"ok","cont":"ok","sd":"ok"},{"nome":"Maria Luiza Braga Bomtempo","sit":"Inativo","sx":"Fem","ens":"Ensino Médio","ano":"EM 2º","agr":"EM","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"16/11/2009","nd":16,"nm":11,"tel":"11 989865038","email":"marialuizabraga@escolaaguai.com","cep":"04180-180","logr":"Rua Charles Lampe","bairro":"Jardim Maria Estela","cidade":"São Paulo","est":"SP","num":"120","mn":"Luciane Souza Braga","mt":"11 98869-5061","me":"luciane.braga@gmail.com","pn":"","pt":"11 97287-8503","pe":"","dm":"01/02/2025","ck":"Escolas Parceira","dov":"E.E Coronel Domingos Quirino Ferreira","diag":"","ra":"113626593-4","cpf":"423.464.258-42","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Leonardo Temponi Ortega Manzano","sit":"Ativo","sx":"Masc","ens":"Fundamental II","ano":"9º","agr":"Agrupada V","per":"Período Estendido","hor":"8h","ext":"","nasc":"13/04/2012","nd":13,"nm":4,"tel":"","email":"leonardomanzano@escolaaguai.com","cep":"04321-170","logr":"Rua Pinheirinho","bairro":"Jabaquara","cidade":"São Paulo","est":"SP","num":"143","mn":"Amanda Temponi dos Santos","mt":"11 97359 3825","me":"amanda.temponi@studiomk27.com.br","pn":"","pt":"(11)91358-5858","pe":"","dm":"06/01/2026","ck":"","dov":"Guaracy Nova Era Colégio Educacional","diag":"chamar","ra":"115656997-7","cpf":"467.541.408-79","di":"OK","drive":"ok","ficha":"ok","cont":"ok","sd":"ok"},{"nome":"Lorenzo Guimarães David","sit":"Ativo","sx":"Masc","ens":"Fundamental II","ano":"9º","agr":"Agrupada V","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"13/06/2011","nd":13,"nm":6,"tel":"","email":"lorenzoguimaraes@escolaaguai.com","cep":"04210-060","logr":"Rua Oliveira Alves","bairro":"Ipiranga","cidade":"São Paulo","est":"SP","num":"Apt 151","mn":"Lara Maria Guimarães","mt":"11 99451 6987","me":"lm.guimaraes@hotmail.com","pn":"","pt":"","pe":"","dm":"","ck":"Internet","dov":"Augusto Martins Gomes","diag":"chamar","ra":"116.542.164-1","cpf":"443.224.268-08","di":"","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Lucas Rocha Paiva","sit":"Ativo","sx":"Masc","ens":"Fundamental II","ano":"9º","agr":"Agrupada V","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"20/09/2011","nd":20,"nm":9,"tel":"(11)99151-1376","email":"lucasrocha@escolaaguai.com","cep":"04155-000","logr":"Rua Rosa de Morais","bairro":"Vila Água Funda","cidade":"São Paulo","est":"SP","num":"93 bl 3","mn":"Joice Silva Rocha","mt":"11 93230 3314","me":"joiceska2009@gmail.com","pn":"","pt":"(11)99347-5703","pe":"Rafa.rudeboy@gmail.com","dm":"","ck":"","dov":"Sigerman","diag":"chamar","ra":"113.494.111-0","cpf":"455.443.978-05","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Nathalia Ribeiro Matanó","sit":"Ativo","sx":"Fem","ens":"Fundamental II","ano":"9º","agr":"Agrupada V","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"","nd":0,"nm":0,"tel":"","email":"nathaliamatano@escolaaguai.com","cep":"","logr":"","bairro":"","cidade":"","est":"","num":"","mn":"Patricia de Abreu Ribeiro","mt":"","me":"","pn":"","pt":"","pe":"","dm":"","ck":"Educa Mais","dov":"Colégio Adventista - Vila Matilde","diag":"","ra":"113639093-5","cpf":"","di":"","drive":"","ficha":"","cont":"","sd":"Não enviada"},{"nome":"Nicolas Almeida Barboza","sit":"Ativo","sx":"Masc","ens":"Fundamental II","ano":"9º","agr":"Agrupada V","per":"Matutino","hor":"07h às 12h20","ext":"","nasc":"01/08/2011","nd":1,"nm":8,"tel":"","email":"nicolasalmeida@escolaaguai.com","cep":"04319-000","logr":"Rua Nelson Fernandes","bairro":"Cidade Vargas","cidade":"São Paulo","est":"SP","num":"450 BL 4 ap 21","mn":"Ariadna Almeida dos Reis Barboza Santos","mt":"11 95998 2236","me":"ariadnareis502@gmail.com","pn":"","pt":"(11) 95282-4334","pe":"isacfernan@yahoo.com.br","dm":"31/10/2024","ck":"Fachada","dov":"Professor Paulo Rossi","diag":"chamar","ra":"120322751-6","cpf":"478.625.478-96","di":"","drive":"","ficha":"","cont":"","sd":"ok"},{"nome":"Lara Gouveia Souza","sit":"Ativo","sx":"Fem","ens":"Educação Infantil","ano":"0º","agr":"Agrupada I ano 3","per":"Matutino","hor":"4h","ext":"","nasc":"11/03/2020","nd":11,"nm":3,"tel":"","email":"laragouveia@escolaaguai.com","cep":"04311-001","logr":"Avenida do Café","bairro":"Vila Guarani (Z Sul)","cidade":"São Paulo","est":"SP","num":"744","mn":"Silvia Gouveia Silva","mt":"11 98258 2588","me":"sg9014@gmail.com","pn":"","pt":"11 97192 2411","pe":"eugenio.batista@vgvimobiliaria.com.br","dm":"08/01/2025","ck":"Passagem","dov":"CEI Pitangueiras","diag":"chamar","ra":"124447424-1","cpf":"583.378.258-98","di":"OK","drive":"","ficha":"","cont":"","sd":"ok"}];
+var INC=[{"nome":"Heitor Zerbini da Silva","ens":"Educação Infantil","serie":"0º","laudo":"","espec":"Não possui laudo anexado"},{"nome":"Calebe Camilo Santana","ens":"Educação Infantil","serie":"0º","laudo":"","espec":"Não possui laudo anexado"},{"nome":"Catarina Martins Brandão","ens":"Educação Infantil","serie":"0º","laudo":"","espec":"Não possui laudo anexado"},{"nome":"Lara Gouveia Souza","ens":"Educação Infantil","serie":"0º","laudo":"","espec":"Não possui laudo anexado"},{"nome":"Miguel Taciro Rodrigues","ens":"Educação Infantil","serie":"0º","laudo":"laudo Miguel Taciro Rodrigues .pdf","espec":""},{"nome":"Eloá Anaya Vieira de Souza Xavier","ens":"Fundamental I","serie":"1º","laudo":"","espec":"Não possui laudo anexado"},{"nome":"Julia Habernmann Saadeh Silva","ens":"Fundamental I","serie":"2º","laudo":"","espec":"Não possui laudo anexado"},{"nome":"Pedro Yuji Akamine Giroldo","ens":"Fundamental I","serie":"2º","laudo":"Laudo Pedro.pdf","espec":""},{"nome":"Agata Maria Kovacs Monção","ens":"Fundamental I","serie":"3º","laudo":"","espec":"Não possui laudo anexado"},{"nome":"Augusto Alves Gomes","ens":"Fundamental I","serie":"3º","laudo":"WhatsApp Image 2025-02-07 at 14.48.32.jpeg","espec":""},{"nome":"Gustavo Fonte Lima","ens":"Fundamental I","serie":"3º","laudo":"","espec":"Não possui laudo anexado"},{"nome":"Manuela Vianna de Oliveira","ens":"Fundamental I","serie":"3º","laudo":"","espec":"Não possui laudo anexado"},{"nome":"Laerte Stephan dos Santos","ens":"Fundamental I","serie":"4º","laudo":"Laerte_relatorio_Neuropediatra.pdf","espec":""},{"nome":"Luis Miguel Souza Aires","ens":"Fundamental I","serie":"4º","laudo":"Laudo Médio Luis Miguel Souza Aires.jpeg","espec":""},{"nome":"Nuno Stephan dos Santos","ens":"Fundamental I","serie":"4º","laudo":"Nuno_relatorio_Neuropediatra.pdf","espec":""},{"nome":"Ravi Barbosa Nadur","ens":"Fundamental I","serie":"4º","laudo":"Laudo Neuropediatra.PDF","espec":""},{"nome":"Alice Habermann Saadeh Silva","ens":"Fundamental I","serie":"5º","laudo":"Laudo_Alice_IMESC2023.pdf","espec":""},{"nome":"Eduardo Riki Suda Bitencourt","ens":"Fundamental I","serie":"5º","laudo":"Laudo Médico.pdf","espec":""},{"nome":"Yasmin Pereira de Medeiros","ens":"Fundamental I","serie":"5º","laudo":"Não possui laudo anexado","espec":""},{"nome":"Felipe Rodrigues Cardoso Evangelista","ens":"Fundamental II","serie":"6º","laudo":"Relatório Clínica de Reabilitação Neurokids .pdf","espec":""},{"nome":"Henrique La Terra","ens":"Fundamental II","serie":"6º","laudo":"Relatório de Atendimento - Henrique La Terra.pdf","espec":""},{"nome":"Matheus Mackey Gomes Lopes Vieira","ens":"Fundamental II","serie":"6º","laudo":"Relatório pós treinamento auditivo Matheus Mackey Gomes lOpes Vieira 2023.pdf","espec":""},{"nome":"Mellanie Maia da Silva Prado","ens":"Fundamental II","serie":"6º","laudo":"Comportamental - Sem CID.","espec":""},{"nome":"Sophia Katsumi Glaser Abe","ens":"Fundamental II","serie":"6º","laudo":"Laudo Sophia","espec":""},{"nome":"Beatriz Queiroz Ribeiro","ens":"Fundamental II","serie":"7º","laudo":"Laudo Médico.pdf","espec":""},{"nome":"Gabriel Vianna de Oliveira","ens":"Fundamental II","serie":"7º","laudo":"Laudo Médico.pdf","espec":""},{"nome":"Lorenzo Fatinazi","ens":"Fundamental II","serie":"7º","laudo":"Lorenzo Fatinati","espec":""},{"nome":"Miguel de Oliveira Alves","ens":"Fundamental II","serie":"7º","laudo":"Laudo Miguel de Oliveira","espec":""},{"nome":"Anthony Miguel dos Santos Freitas","ens":"Fundamental II","serie":"8º","laudo":"Comportamental - Sem CID.","espec":""},{"nome":"Arthur Canel Magaton","ens":"Fundamental II","serie":"8º","laudo":"Arthur Magaton - Avaliação Neuropsicológica - Ago 2019.pdf","espec":""},{"nome":"Frederico Gonçalves Craveiro","ens":"Fundamental II","serie":"8º","laudo":"Sem laudo anexo. Só relatório","espec":""},{"nome":"Luan de Castro Silva","ens":"Fundamental II","serie":"8º","laudo":"","espec":"Não possui laudo"},{"nome":"Max Giglio de Souza","ens":"Fundamental II","serie":"8º","laudo":"","espec":"Não possui laudo"},{"nome":"Rodrigo D'agosto Rocha","ens":"Fundamental II","serie":"8º","laudo":"","espec":"Não possui laudo"},{"nome":"Gabriel Schulze","ens":"Fundamental II","serie":"9º","laudo":"","espec":"Não possui laudo"},{"nome":"João Braga Antunes","ens":"Fundamental II","serie":"9º","laudo":"","espec":"Não possui laudo"},{"nome":"Leonardo Temponi Ortega Manzano","ens":"Fundamental II","serie":"9º","laudo":"","espec":"Não possui laudo"},{"nome":"Lorenzo Guimarães David","ens":"Fundamental II","serie":"9º","laudo":"","espec":"Não possui laudo"},{"nome":"Lucas Rocha Paiva","ens":"Fundamental II","serie":"9º","laudo":"","espec":"Não possui laudo"},{"nome":"Nicolas Almeida Barboza","ens":"Fundamental II","serie":"9º","laudo":"","espec":"Não possui laudo"},{"nome":"Anna Beatriz Ribeiro Ferreira","ens":"Ensino Médio","serie":"EM 1º","laudo":"Pendente","espec":"TAG"},{"nome":"Flavio Yoshihara Firmino","ens":"Ensino Médio","serie":"EM 1º","laudo":"Pendente","espec":""},{"nome":"Leonardo Ramos Mangini","ens":"Ensino Médio","serie":"EM 1º","laudo":"Pendente","espec":"TDAH - DI - PAC"},{"nome":"Miguel Silveira Leal","ens":"Ensino Médio","serie":"EM 1º","laudo":"Laudo Médico","espec":"TDAH - TEA - TDG - TOD -"},{"nome":"Thaís Hajj Roffe","ens":"Ensino Médio","serie":"EM 1º","laudo":"Laudo Médico","espec":"TDAH - Depressão - TAG"},{"nome":"Clara Félix da Costa","ens":"Ensino Médio","serie":"EM 2º","laudo":"","espec":"TAG"},{"nome":"Lavínia Vitória Oliveira Reis","ens":"Ensino Médio","serie":"EM 2º","laudo":"","espec":"Não possui laudo"},{"nome":"Luiz Felipe Freire Pereira","ens":"Ensino Médio","serie":"EM 2º","laudo":"","espec":"Não possui laudo"},{"nome":"Matheus Rodrigues Tsuruda","ens":"Ensino Médio","serie":"EM 2º","laudo":"","espec":"Não possui laudo"},{"nome":"Miguel Perilo Duarte","ens":"Ensino Médio","serie":"EM 2º","laudo":"","espec":"Não possui laudo"},{"nome":"Breno Maia da Silva Prado","ens":"Ensino Médio","serie":"EM 3º","laudo":"","espec":"Não possui laudo"},{"nome":"Sara Lopes Fernandes","ens":"Ensino Médio","serie":"EM 3º","laudo":"","espec":"Não possui laudo"}];
+
+var M26=[{m:"Set",pe:6,pr:17,me:2,mr:1},{m:"Out",pe:32,pr:0,me:8,mr:2},{m:"Nov",pe:25,pr:0,me:6,mr:0},{m:"Dez",pe:19,pr:0,me:5,mr:0},{m:"Jan",pe:25,pr:0,me:6,mr:0},{m:"Fev",pe:13,pr:0,me:3,mr:0},{m:"Mar",pe:6,pr:0,me:2,mr:0}];
+var M25=[{m:"Set",e:2,r:10},{m:"Out",e:8,r:1},{m:"Nov",e:6,r:1},{m:"Dez",e:5,r:1},{m:"Jan",e:6,r:7},{m:"Fev",e:3,r:4},{m:"Mar",e:2,r:0}];
+var MESES=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+var COLS=["#B5D4F4","#9FE1CB","#CECBF6","#FAC775","#F9C8C8","#C5E8F7","#D5F0D5","#F5E0C0"];
+var ENS_BG={"Educação Infantil":"#E6F1FB","Fundamental I":"#EAF3DE","Fundamental II":"#FAEEDA","Ensino Médio":"#FBEAF0"};
+var ENS_TX={"Educação Infantil":"#185FA5","Fundamental I":"#3B6D11","Fundamental II":"#854F0B","Ensino Médio":"#993556"};
+
+var filtered=D.slice();
+var docFilter="todos";
+var bdayM=new Date().getMonth()+1;
+var activePill="";
+var cFiltered=D.slice();
+var chartsInited=false;
+
+function isOk(v){return v&&(v.toLowerCase()==="ok"||v.toLowerCase()==="enviada");}
+function initials(n){return n.split(" ").slice(0,2).map(function(w){return w[0]||"";}).join("").toUpperCase();}
+function waLink(t){var n=(t||"").replace(/\D/g,"");if(n.length<10)return null;return"https://wa.me/"+(n.startsWith("55")?n:"55"+n);}
+function docBadge(v){if(!v||v==="")return'<span class="b b-nok">Pendente</span>';if(isOk(v))return'<span class="b b-ok">OK</span>';return'<span class="b b-warn">'+v.substring(0,10)+"</span>";}
+function imgBadge(v){if(v==="OK")return'<span class="b b-ok">OK</span>';if(v==="NOK")return'<span class="b b-nok">NOK</span>';return'<span class="b b-none">—</span>';}
+function fieldRow(l,v){if(!v)return"";return'<div class="dr"><span class="dl">'+l+'</span><span class="dv">'+v+"</span></div>";}
+function dl(content,filename){var b=new Blob(["\uFEFF"+content],{type:"text/csv;charset=utf-8"});var u=URL.createObjectURL(b);var a=document.createElement("a");a.href=u;a.download=filename;a.click();URL.revokeObjectURL(u);}
+
+function showBars(id,data,colors){
+  var max=Math.max.apply(null,data.map(function(d){return d.v;}).concat([1]));
+  var html="";
+  for(var i=0;i<data.length;i++){
+    var h=Math.round(data[i].v/max*85)+4;
+    html+='<div class="bw"><div class="bv">'+data[i].v+'</div><div class="bar" style="height:'+h+'px;background:'+colors[i%colors.length]+'"></div><div class="bl">'+data[i].l+"</div></div>";
+  }
+  document.getElementById(id).innerHTML=html;
+}
+
+function showView(id,el){
+  var views=document.querySelectorAll(".view");
+  for(var i=0;i<views.length;i++){views[i].classList.remove("active");}
+  document.getElementById("view-"+id).classList.add("active");
+  var navs=document.querySelectorAll(".nav-item");
+  for(var i=0;i<navs.length;i++){navs[i].classList.remove("active");}
+  el.classList.add("active");
+  if(id==="historico"&&!chartsInited){initHistorico();chartsInited=true;}
+}
+
+// PAINEL
+function initPainel(){
+  var a=D.filter(function(d){return d.sit==="Ativo";});
+  var sf=a.filter(function(d){return !isOk(d.ficha);}).length;
+  var ch=D.filter(function(d){return d.diag==="chamar";}).length;
+  var sc=a.filter(function(d){return !isOk(d.cont)&&(d.cont||"").toLowerCase()!=="enviada";}).length;
+  document.getElementById("sg").innerHTML=[
+    {l:"Total de alunos",v:D.length,s:a.length+" ativos / "+(D.length-a.length)+" inativos",c:""},
+    {l:"Sem ficha cadastral",v:sf,s:"alunos ativos pendentes",c:"warn"},
+    {l:'Alunos "chamar"',v:ch,s:"precisam de atenção",c:"danger"},
+    {l:"Sem contrato assinado",v:sc,s:"alunos ativos",c:""},
+  ].map(function(s){return'<div class="sc '+s.c+'"><div class="sc-l">'+s.l+'</div><div class="sc-v">'+s.v+'</div><div class="sc-s">'+s.s+"</div></div>";}).join("");
+  document.getElementById("docBadge").textContent=sf;
+
+  var sm={"Ed. Infantil":0,"Fund. I":0,"Fund. II":0,"Ens. Médio":0};
+  var mp={"Educação Infantil":"Ed. Infantil","Fundamental I":"Fund. I","Fundamental II":"Fund. II","Ensino Médio":"Ens. Médio"};
+  a.forEach(function(d){var k=mp[d.ens];if(k)sm[k]++;});
+  showBars("c1",Object.keys(sm).map(function(k){return{l:k,v:sm[k]};}),COLS);
+
+  var ck={};
+  a.forEach(function(d){if(d.ck)ck[d.ck]=(ck[d.ck]||0)+1;});
+  var ckArr=Object.keys(ck).map(function(k){return{l:k,v:ck[k]};}).sort(function(a,b){return b.v-a.v;}).slice(0,8);
+  ckArr.forEach(function(x){x.l=x.l.substring(0,10);});
+  showBars("c2",ckArr,COLS);
+
+  var alerts=[];
+  var nd=a.filter(function(d){return d.di==="NOK";}).length;
+  if(nd)alerts.push({r:true,t:nd+" alunos sem autorização de direito de imagem"});
+  var se=a.filter(function(d){return !d.logr;}).length;
+  if(se)alerts.push({r:false,t:se+" alunos sem endereço cadastrado"});
+  var sdm=a.filter(function(d){return !d.dm;}).length;
+  if(sdm)alerts.push({r:false,t:sdm+" alunos sem data de matrícula"});
+  document.getElementById("al").innerHTML=alerts.map(function(x){
+    return'<div class="ai"><div class="ad" style="background:'+(x.r?"#E24B4A":"#EF9F27")+'"></div><div style="font-size:12px">'+x.t+"</div></div>";
+  }).join("")||'<div class="empty">Nenhum alerta crítico</div>';
+
+  var m=new Date().getMonth()+1;
+  var bd=D.filter(function(d){return d.nm===m&&d.sit==="Ativo";}).sort(function(a,b){return a.nd-b.nd;});
+  document.getElementById("bl").innerHTML=bd.slice(0,6).map(function(d){
+    return'<div class="bd-row"><div class="bdc">'+d.nd+'</div><div><div style="font-size:12px;font-weight:500">'+d.nome+'</div><div style="font-size:11px;color:var(--text3)">'+d.ens+" &middot; "+d.ano+"</div></div></div>";
+  }).join("")||'<div class="empty">Nenhum aniversário este mês</div>';
+
+  var bk={};
+  a.forEach(function(d){if(d.bairro)bk[d.bairro]=(bk[d.bairro]||0)+1;});
+  var bArr=Object.keys(bk).map(function(k){return{l:k,v:bk[k]};}).sort(function(a,b){return b.v-a.v;}).slice(0,10);
+  bArr.forEach(function(x){x.l=x.l.substring(0,13);});
+  showBars("c3",bArr,Array(10).fill("#B5D4F4"));
+}
+
+// ALUNOS
+function initPills(){
+  var ens=[];
+  D.forEach(function(d){if(d.ens&&ens.indexOf(d.ens)<0)ens.push(d.ens);});
+  var html='<span class="pill ap" onclick="setPill(\'\',this)">Todos</span>';
+  ens.forEach(function(e){html+='<span class="pill" onclick="setPill(\''+e+'\',this)">'+e+"</span>";});
+  document.getElementById("pills").innerHTML=html;
+}
+function setPill(e,el){
+  activePill=e;
+  var pills=document.querySelectorAll("#pills .pill");
+  for(var i=0;i<pills.length;i++){pills[i].classList.remove("ap");}
+  el.classList.add("ap");
+  filterAlunos();
+}
+function filterAlunos(){
+  var q=(document.getElementById("gs").value||"").toLowerCase();
+  var fe=document.getElementById("fE").value;
+  var fs=document.getElementById("fS").value;
+  filtered=D.filter(function(d){
+    var mq=!q||d.nome.toLowerCase().indexOf(q)>=0||d.email.toLowerCase().indexOf(q)>=0||(d.bairro||"").toLowerCase().indexOf(q)>=0||(d.mn||"").toLowerCase().indexOf(q)>=0;
+    return mq&&(!fe||d.ens===fe)&&(!activePill||d.ens===activePill)&&(!fs||d.sit===fs);
+  });
+  renderAlunos();
+  renderDocs();
+}
+function renderAlunos(){
+  document.getElementById("aC").textContent=filtered.length+" aluno"+(filtered.length!==1?"s":"");
+  document.getElementById("aS").textContent="de "+D.length+" total";
+  var html="";
+  filtered.forEach(function(d,i){
+    var idx=D.indexOf(d);
+    var diag=d.diag?'<span class="b b-nok">'+d.diag+"</span>":"";
+    var ens2=d.ens.replace("Educação","Ed.").replace("Fundamental","F.");
+    var sit=d.sit==="Ativo"?'<span class="b b-ativo">Ativo</span>':'<span class="b b-inativo">Inativo</span>';
+    html+='<tr class="rl" onclick="openDetail('+idx+')">'
+      +'<td><span style="font-weight:500">'+d.nome+"</span> "+diag+"</td>"
+      +'<td><span class="b b-info" style="font-size:10px">'+ens2+"</span> "+d.ano+"</td>"
+      +'<td style="font-size:11px">'+d.per+"</td>"
+      +'<td style="font-size:11px">'+(d.nasc||"—")+"</td>"
+      +'<td style="font-size:11px;color:var(--text2)">'+(d.mt||"—")+"</td>"
+      +'<td>'+sit+"</td></tr>";
+  });
+  document.getElementById("ab").innerHTML=html;
+}
+
+// DOCS
+function dtTab(f,el){
+  docFilter=f;
+  var tabs=document.querySelectorAll("#dtabs .tab");
+  for(var i=0;i<tabs.length;i++){tabs[i].classList.remove("at");}
+  el.classList.add("at");
+  renderDocs();
+}
+function renderDocs(){
+  var data=D.filter(function(d){return d.sit==="Ativo";});
+  var e=document.getElementById("dE").value;
+  if(docFilter==="ficha")data=data.filter(function(d){return !isOk(d.ficha);});
+  else if(docFilter==="cont")data=data.filter(function(d){return !isOk(d.cont)&&(d.cont||"").toLowerCase()!=="enviada";});
+  else if(docFilter==="drive")data=data.filter(function(d){return !isOk(d.drive);});
+  else if(docFilter==="img")data=data.filter(function(d){return d.di==="NOK"||!d.di;});
+  else data=data.filter(function(d){return !isOk(d.ficha)||!isOk(d.drive)||(!isOk(d.cont)&&(d.cont||"").toLowerCase()!=="enviada")||d.di==="NOK"||!d.di;});
+  if(e)data=data.filter(function(d){return d.ens===e;});
+  document.getElementById("dC").textContent=data.length+" aluno"+(data.length!==1?"s":"");
+  var html="";
+  data.forEach(function(d){
+    var idx=D.indexOf(d);
+    var ens2=d.ens.replace("Educação","Ed.").replace("Fundamental","F.");
+    html+='<tr class="rl" onclick="openDetail('+idx+')">'
+      +'<td style="font-weight:500">'+d.nome+"</td>"
+      +'<td><span class="b b-info" style="font-size:10px">'+ens2+"</span></td>"
+      +"<td>"+d.ano+"</td>"
+      +"<td>"+docBadge(d.ficha)+"</td>"
+      +"<td>"+docBadge(d.drive)+"</td>"
+      +"<td>"+docBadge(d.cont)+"</td>"
+      +"<td>"+imgBadge(d.di)+"</td>"
+      +"<td>"+docBadge(d.sd)+"</td>"
+      +'<td style="font-size:11px;color:var(--text2)">'+(d.mt||"—")+"</td></tr>";
+  });
+  document.getElementById("dBody").innerHTML=html;
+}
+function exportDocsCsv(){
+  var data=D.filter(function(d){return d.sit==="Ativo";}).filter(function(d){return !isOk(d.ficha)||!isOk(d.drive)||(!isOk(d.cont)&&(d.cont||"").toLowerCase()!=="enviada")||d.di==="NOK"||!d.di;});
+  var rows=data.map(function(d){return [d.nome,d.ens,d.ano,d.ficha||"pendente",d.drive||"pendente",d.cont||"pendente",d.di||"—",d.sd||"pendente",d.mt].map(function(v){return'"'+(v||"").replace(/"/g,'""')+'"';}).join(",");});
+  dl(["Nome,Segmento,Ano,Ficha,Drive,Contrato,Dir. Imagem,Sec. Digital,Tel. Mãe"].concat(rows).join("\n"),"docs_pendentes.csv");
+}
+function printDocs(){
+  var data=D.filter(function(d){return d.sit==="Ativo";}).filter(function(d){return !isOk(d.ficha)||!isOk(d.drive)||(!isOk(d.cont)&&(d.cont||"").toLowerCase()!=="enviada")||d.di==="NOK"||!d.di;});
+  var w=window.open("","_blank");
+  var rows=data.map(function(d){return "<tr><td>"+d.nome+"</td><td>"+d.ens+"</td>"+'<td class="'+(isOk(d.ficha)?"ok":"nok")+'">'+(isOk(d.ficha)?"OK":"Pendente")+"</td>"+'<td class="'+(isOk(d.drive)?"ok":"nok")+'">'+(isOk(d.drive)?"OK":d.drive||"Pendente")+"</td>"+'<td class="'+(isOk(d.cont)?"ok":"nok")+'">'+(isOk(d.cont)?"OK":d.cont||"Pendente")+"</td>"+'<td class="'+(d.di==="OK"?"ok":"nok")+'">'+(d.di||"—")+"</td><td>"+(d.mt||"—")+"</td></tr>";}).join("");
+  w.document.write('<!DOCTYPE html><html><head><title>Docs Pendentes</title><style>body{font-family:Arial,sans-serif;font-size:11px;padding:16px}h1{font-size:14px;margin-bottom:6px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:5px 7px}th{background:#f5f5f5;font-weight:600}.ok{color:#3B6D11}.nok{color:#A32D2D;font-weight:500}</style></head><body><h1>Escola Aguaí — Documentação Pendente ('+data.length+' alunos)</h1><p style="color:#666;margin-bottom:10px">Gerado: '+new Date().toLocaleDateString("pt-BR")+"</p><table><thead><tr><th>Nome</th><th>Segmento</th><th>Ficha</th><th>Drive</th><th>Contrato</th><th>Dir. Imagem</th><th>Tel. Mãe</th></tr></thead><tbody>"+rows+"</tbody></table></body></html>");
+  w.document.close();w.focus();setTimeout(function(){w.print();},400);
+}
+
+// ANIVERSÁRIOS
+function initMonths(){
+  var html="";
+  MESES.forEach(function(m,i){html+='<span class="pill'+(i+1===bdayM?" ap":"")+"\" onclick=\"setBday("+(i+1)+',this)">'+m.substring(0,3)+"</span>";});
+  document.getElementById("mps").innerHTML=html;
+  renderBdays();
+}
+function setBday(m,el){
+  bdayM=m;
+  var pills=document.querySelectorAll("#mps .pill");
+  for(var i=0;i<pills.length;i++){pills[i].classList.remove("ap");}
+  el.classList.add("ap");
+  renderBdays();
+}
+function renderBdays(){
+  var data=D.filter(function(d){return d.nm===bdayM&&d.sit==="Ativo";}).sort(function(a,b){return a.nd-b.nd;});
+  document.getElementById("bC").textContent=data.length+" aniversariante"+(data.length!==1?"s":"")+" em "+MESES[bdayM-1];
+  var html="";
+  data.forEach(function(d){
+    var idx=D.indexOf(d);
+    html+='<tr class="rl" onclick="openDetail('+idx+')">'
+      +"<td><strong>"+String(d.nd).padStart(2,"0")+"/"+String(bdayM).padStart(2,"0")+"</strong></td>"
+      +'<td style="font-weight:500">'+d.nome+"</td>"
+      +'<td style="font-size:11px">'+d.ens+"</td>"
+      +'<td style="font-size:11px">'+d.ano+"</td>"
+      +'<td style="font-size:11px">'+(d.mt||"—")+"</td></tr>";
+  });
+  document.getElementById("bb").innerHTML=html||'<tr><td colspan="5" class="empty">Nenhum aniversariante</td></tr>';
+}
+
+// INCLUSÃO
+function renderInclusao(){
+  document.getElementById("iC").textContent=INC.length+" alunos";
+  var html="";
+  INC.forEach(function(d){
+    html+="<tr>"
+      +'<td style="font-weight:500">'+d.nome+"</td>"
+      +'<td style="font-size:11px">'+d.ens.replace("Educação","Ed.").replace("Fundamental","F.")+"</td>"
+      +"<td>"+d.serie+"</td>"
+      +"<td>"+(d.laudo?'<span class="b b-ok">Anexado</span>':'<span class="b b-nok">Sem laudo</span>')+"</td>"
+      +'<td style="font-size:11px;color:var(--text2)">'+(d.espec||"—")+"</td></tr>";
+  });
+  document.getElementById("ib").innerHTML=html;
+}
+
+// TURMAS
+function renderTurmas(){
+  var turmas={};
+  D.filter(function(d){return d.sit==="Ativo";}).forEach(function(d){
+    var k=d.ens+"|"+d.ano;
+    if(!turmas[k])turmas[k]={ens:d.ens,ano:d.ano,al:[]};
+    turmas[k].al.push(d);
+  });
+  var cm={"Educação Infantil":"#B5D4F4","Fundamental I":"#9FE1CB","Fundamental II":"#CECBF6","Ensino Médio":"#FAC775"};
+  var html="";
+  Object.keys(turmas).forEach(function(k){
+    var t=turmas[k];
+    var pers=[];
+    t.al.forEach(function(a){
+      var s=a.per.replace("Período ","").split(" ")[0];
+      if(pers.indexOf(s)<0)pers.push(s);
+    });
+    var ensEsc=t.ens.replace("'","&apos;");
+    var anoEsc=t.ano.replace("'","&apos;");
+    html+='<div class="tc" onclick="goTurma(\''+ensEsc+'\',\''+anoEsc+'\')">'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'
+      +'<div style="width:10px;height:10px;border-radius:50%;background:'+(cm[t.ens]||"#ccc")+'"></div>'
+      +'<span style="font-size:13px;font-weight:500">'+t.ano+"</span></div>"
+      +'<div style="font-size:11px;color:var(--text2)">'+t.ens+"</div>"
+      +'<div style="font-size:11px;color:var(--text3);margin-top:3px">'+t.al.length+" aluno"+(t.al.length!==1?"s":"")+"</div>"
+      +'<div style="font-size:10px;color:var(--text3);margin-top:2px">'+pers.join(", ")+"</div></div>";
+  });
+  document.getElementById("tg").innerHTML=html;
+}
+function goTurma(ens,ano){
+  document.getElementById("fE").value=ens;
+  document.getElementById("fS").value="Ativo";
+  activePill=ens;
+  filtered=D.filter(function(d){return d.ens===ens&&d.ano===ano&&d.sit==="Ativo";});
+  var pills=document.querySelectorAll("#pills .pill");
+  for(var i=0;i<pills.length;i++){pills[i].classList.toggle("ap",pills[i].textContent===ens);}
+  renderAlunos();
+  showView("alunos",document.querySelectorAll(".nav-item")[1]);
+}
+
+// METAS
+function renderMetas(){
+  var t26m=M26.reduce(function(s,m){return s+m.mr;},0);
+  var t26e=M26.reduce(function(s,m){return s+m.me;},0);
+  var t25m=M25.reduce(function(s,m){return s+m.r;},0);
+  var t25e=M25.reduce(function(s,m){return s+m.e;},0);
+  var ativos=D.filter(function(d){return d.sit==="Ativo";}).length;
+  document.getElementById("ms").innerHTML=[
+    {l:"Meta 2026 (anual)",v:140,s:"objetivo de matrículas",c:""},
+    {l:"Matriculados 2026",v:t26m,s:"de "+t26e+" esperados",c:t26m<t26e?"warn":""},
+    {l:"Matriculados 2025",v:t25m,s:"de "+t25e+" esperados",c:""},
+    {l:"Ativos hoje",v:ativos,s:"alunos matriculados",c:""},
+  ].map(function(s){return'<div class="sc '+s.c+'"><div class="sc-l">'+s.l+'</div><div class="sc-v">'+s.v+'</div><div class="sc-s">'+s.s+"</div></div>";}).join("");
+
+  var mx25=Math.max.apply(null,M25.map(function(m){return Math.max(m.e,m.r);}));mx25=Math.max(mx25,1);
+  document.getElementById("mc25").innerHTML=M25.map(function(m){
+    return'<div class="bw" style="gap:2px"><div style="display:flex;gap:2px;align-items:flex-end">'
+      +'<div style="width:12px;height:'+(Math.round(m.e/mx25*82)+4)+'px;background:#CECBF6;border-radius:2px 2px 0 0"></div>'
+      +'<div style="width:12px;height:'+(m.r>0?Math.round(m.r/mx25*82)+4:4)+'px;background:#9FE1CB;border-radius:2px 2px 0 0"></div>'
+      +'</div><div class="bl">'+m.m+"</div></div>";
+  }).join("");
+
+  var mx26=Math.max.apply(null,M26.map(function(m){return Math.max(m.me,m.mr);}));mx26=Math.max(mx26,1);
+  document.getElementById("mc26").innerHTML=M26.map(function(m){
+    return'<div class="bw" style="gap:2px"><div style="display:flex;gap:2px;align-items:flex-end">'
+      +'<div style="width:12px;height:'+(Math.round(m.me/mx26*82)+4)+'px;background:#CECBF6;border-radius:2px 2px 0 0"></div>'
+      +'<div style="width:12px;height:'+(m.mr>0?Math.round(m.mr/mx26*82)+4:4)+'px;background:#9FE1CB;border-radius:2px 2px 0 0"></div>'
+      +'</div><div class="bl">'+m.m+"</div></div>";
+  }).join("");
+
+  document.getElementById("mb").innerHTML=M26.map(function(m){
+    var conv=m.pr>0?Math.round(m.mr/m.pr*100)+"%":"—";
+    var mrBadge=m.mr>0?'<span class="b b-ok">'+m.mr+"</span>":'<span class="b b-none">0</span>';
+    return"<tr><td style=\"font-weight:500\">"+m.m+"</td><td>"+m.pe+"</td><td>"+(m.pr||"—")+"</td><td>"+m.me+"</td><td>"+mrBadge+"</td><td>"+conv+"</td></tr>";
+  }).join("");
+}
+
+// CONTATOS
+function filterContatos(){
+  var q=(document.getElementById("cq").value||"").toLowerCase();
+  var e=document.getElementById("cE").value;
+  var p=document.getElementById("cP").value;
+  cFiltered=D.filter(function(d){
+    var mq=!q||d.nome.toLowerCase().indexOf(q)>=0||(d.mn||"").toLowerCase().indexOf(q)>=0||(d.mt||"").indexOf(q)>=0;
+    return mq&&(!e||d.ens===e)&&(!p||d.per.indexOf(p)>=0)&&d.sit==="Ativo";
+  });
+  renderContatos();
+}
+function renderContatos(){
+  document.getElementById("cCnt").textContent=cFiltered.length+" aluno"+(cFiltered.length!==1?"s":"");
+  var html="";
+  cFiltered.forEach(function(d){
+    var bg=ENS_BG[d.ens]||"#E6F1FB";
+    var tx=ENS_TX[d.ens]||"#185FA5";
+    var ini2=initials(d.nome);
+    var wa=waLink(d.mt);
+    var wap=waLink(d.pt);
+    var maeRow="";
+    if(d.mn){
+      maeRow='<div class="cr"><span style="color:var(--text2)"><i class="ti ti-user" style="font-size:13px"></i> '+d.mn.split(" ").slice(0,3).join(" ")+"</span>"
+        +'<div style="display:flex;align-items:center;gap:5px">'
+        +(d.mt?'<span style="font-size:11px">'+d.mt+"</span>":"")
+        +(wa?'<a class="wa" href="'+wa+'" target="_blank"><i class="ti ti-brand-whatsapp" style="font-size:12px"></i>WA</a>':"")
+        +"</div></div>";
+    }
+    var emailRow="";
+    if(d.me){emailRow='<div class="cr"><span style="color:var(--text2)"><i class="ti ti-mail" style="font-size:13px"></i> Email</span><a href="mailto:'+d.me+'" style="color:#185FA5;font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block">'+d.me+"</a></div>";}
+    var paiRow="";
+    if(d.pt){paiRow='<div class="cr"><span style="color:var(--text2)"><i class="ti ti-user" style="font-size:13px"></i> Pai/resp.</span><div style="display:flex;align-items:center;gap:5px"><span style="font-size:11px">'+d.pt+"</span>"+(wap?'<a class="wa" href="'+wap+'" target="_blank"><i class="ti ti-brand-whatsapp" style="font-size:12px"></i>WA</a>':"")+"</div></div>";}
+    html+='<div class="cc"><div class="ch2"><div class="av2" style="background:'+bg+";color:"+tx+'">'+ini2+"</div>"
+      +'<div><div style="font-size:12px;font-weight:500">'+d.nome+"</div>"
+      +'<div style="font-size:11px;color:var(--text2)">'+d.ens+" &middot; "+d.ano+" &middot; "+d.per+"</div></div></div>"
+      +"<div>"+maeRow+emailRow+paiRow+"</div></div>";
+  });
+  document.getElementById("cGrid").innerHTML=html;
+}
+function exportContatosCsv(){
+  var rows=cFiltered.map(function(d){return [d.nome,d.ens,d.ano,d.per,d.mn,d.mt,d.me,d.pt,d.pe].map(function(v){return '"'+(v||"").replace(/"/g,'""')+'"';}).join(",");});
+  dl(["Nome,Segmento,Ano,Período,Nome Mãe,Tel. Mãe,Email Mãe,Tel. Pai,Email Pai"].concat(rows).join("\n"),"contatos_aguai.csv");
+}
+
+// HISTÓRICO
+function initHistorico(){
+  var ENS=["Educação Infantil","Fundamental I","Fundamental II","Ensino Médio"];
+  var ECOL=["#B5D4F4","#9FE1CB","#CECBF6","#FAC775"];
+  var MN={1:"Jan",2:"Fev",3:"Mar",4:"Abr",5:"Mai",6:"Jun",7:"Jul",8:"Ago",9:"Set",10:"Out",11:"Nov",12:"Dez"};
+  var bm={};
+  D.filter(function(d){return !!d.dm;}).forEach(function(d){
+    var p=d.dm.split("/");if(p.length<3)return;
+    var k=p[2]+"-"+p[1].padStart(2,"0");
+    if(!bm[k])bm[k]={};bm[k][d.ens]=(bm[k][d.ens]||0)+1;
+  });
+  var labs=Object.keys(bm).sort();
+  var nice=labs.map(function(k){var parts=k.split("-");return MN[parseInt(parts[1])]+"/"+parts[0].slice(2);});
+
+  new Chart(document.getElementById("cBar"),{type:"bar",data:{labels:nice,datasets:ENS.map(function(e,i){return{label:e,data:labs.map(function(k){return bm[k][e]||0;}),backgroundColor:ECOL[i],borderRadius:3,borderSkipped:false};})},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{mode:"index",intersect:false}},scales:{x:{stacked:true,grid:{display:false},ticks:{autoSkip:false,maxRotation:45,font:{size:10}}},y:{stacked:true,grid:{color:"rgba(128,128,128,0.1)"},ticks:{font:{size:10},stepSize:1}}}}});
+
+  var ce={};D.forEach(function(d){ce[d.ens]=(ce[d.ens]||0)+1;});
+  new Chart(document.getElementById("cDnut"),{type:"doughnut",data:{labels:ENS,datasets:[{data:ENS.map(function(e){return ce[e]||0;}),backgroundColor:ECOL,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:"62%",plugins:{legend:{position:"bottom",labels:{font:{size:10},boxWidth:10}},tooltip:{callbacks:{label:function(c){return c.label+": "+c.raw;}}}}}});
+
+  var cp={};D.forEach(function(d){var k=d.per.indexOf("Matutin")>=0?"Matutino":d.per.indexOf("Vespert")>=0?"Vespertino":d.per.indexOf("Estendido")>=0?"Estendido":"Outros";cp[k]=(cp[k]||0)+1;});
+  var pl=Object.keys(cp);
+  new Chart(document.getElementById("cPer"),{type:"bar",data:{labels:pl,datasets:[{data:pl.map(function(k){return cp[k];}),backgroundColor:ECOL,borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:"rgba(128,128,128,0.1)"},ticks:{font:{size:10},stepSize:1}}}}});
+
+  var t26=D.filter(function(d){return d.dm&&d.dm.indexOf("/2026")>=0;}).length;
+  var t25=D.filter(function(d){return d.dm&&d.dm.indexOf("/2025")>=0;}).length;
+  var t24=D.filter(function(d){return d.dm&&d.dm.indexOf("/2024")>=0;}).length;
+  document.getElementById("hSg").innerHTML=[
+    {l:"Total no sistema",v:D.length,s:"alunos cadastrados"},
+    {l:"Matrículas em 2024",v:t24,s:"ano anterior"},
+    {l:"Matrículas em 2025",v:t25,s:"ano anterior"},
+    {l:"Matrículas em 2026",v:t26,s:"ano corrente"},
+  ].map(function(s){return'<div class="sc"><div class="sc-l">'+s.l+'</div><div class="sc-v">'+s.v+'</div><div class="sc-s">'+s.s+"</div></div>";}).join("");
+
+  var tHTML="<thead><tr><th>Mês/Ano</th><th>Ed. Infantil</th><th>Fund. I</th><th>Fund. II</th><th>Ens. Médio</th><th>Total</th></tr></thead><tbody>";
+  labs.forEach(function(k,i){
+    var r=bm[k];var vs=ENS.map(function(e){return r[e]||0;});
+    var tot=vs.reduce(function(a,b){return a+b;},0);
+    tHTML+="<tr><td style=\"font-weight:500\">"+nice[i]+"</td>"+vs.map(function(v){return"<td>"+(v||"—")+"</td>";}).join("")+"<td style=\"font-weight:500\">"+tot+"</td></tr>";
+  });
+  document.getElementById("hTbl").innerHTML=tHTML+"</tbody>";
+}
+
+// BUSCA AVANÇADA
+function initBusca(){
+  var bairros=[];
+  D.forEach(function(d){if(d.bairro&&bairros.indexOf(d.bairro)<0)bairros.push(d.bairro);});
+  bairros.sort();
+  document.getElementById("fB").innerHTML='<option value="">Todos</option>'+bairros.map(function(b){return"<option>"+b+"</option>";}).join("");
+  var cks=[];
+  D.forEach(function(d){if(d.ck&&cks.indexOf(d.ck)<0)cks.push(d.ck);});
+  cks.sort();
+  document.getElementById("fCo").innerHTML='<option value="">Todos</option>'+cks.map(function(c){return"<option>"+c+"</option>";}).join("");
+  advSearch();
+}
+function advSearch(){
+  var b=document.getElementById("fB").value,c=document.getElementById("fCo").value;
+  var p=document.getElementById("fP").value,dg=document.getElementById("fD").value,ex=document.getElementById("fX").value;
+  var data=D.filter(function(d){
+    if(b&&d.bairro!==b)return false;if(c&&d.ck!==c)return false;
+    if(p&&d.per.toLowerCase().indexOf(p.toLowerCase())<0)return false;
+    if(dg==="chamar"&&d.diag!=="chamar")return false;
+    if(dg==="sem"&&d.diag)return false;
+    if(ex==="com"&&!d.ext)return false;if(ex==="sem"&&d.ext)return false;
+    return true;
+  });
+  document.getElementById("advC").textContent=data.length+" aluno"+(data.length!==1?"s":"");
+  var html="";
+  data.forEach(function(d){
+    var idx=D.indexOf(d);
+    html+='<tr class="rl" onclick="openDetail('+idx+')">'
+      +'<td style="font-weight:500">'+d.nome+"</td>"
+      +'<td style="font-size:11px">'+d.ens.replace("Educação","Ed.")+"</td>"
+      +'<td style="font-size:11px">'+d.ano+"</td>"
+      +'<td style="font-size:11px">'+(d.bairro||"—")+"</td>"
+      +'<td style="font-size:11px">'+d.per+"</td>"
+      +'<td style="font-size:11px">'+(d.ck||"—")+"</td>"
+      +'<td style="font-size:11px">'+(d.ext||"—")+"</td></tr>";
+  });
+  document.getElementById("advB").innerHTML=html;
+}
+function clearAdv(){
+  ["fB","fCo","fP","fD","fX"].forEach(function(id){document.getElementById(id).value="";});
+  advSearch();
+}
+
+// DETAIL
+function openDetail(idx){
+  var d=D[idx];
+  var ini2=initials(d.nome);
+  var sitBadge=d.sit==="Ativo"?'<span class="b b-ativo">Ativo</span>':'<span class="b b-inativo">Inativo</span>';
+  var diagBadge=d.diag?'<div style="margin-top:4px"><span class="b b-nok">'+d.diag+"</span></div>":"";
+  var wa=waLink(d.mt);
+  var waBtns=wa?'<br><a href="'+wa+'" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:#eaf3de;color:#3b6d11;border-radius:6px;font-size:11px;text-decoration:none;margin-bottom:6px"><i class="ti ti-brand-whatsapp"></i>WhatsApp mãe</a><br>':"";
+  var emailLink=d.email?'<a href="mailto:'+d.email+'" style="color:#185FA5">'+d.email+"</a>":"";
+  var maeEmail=d.me?'<a href="mailto:'+d.me+'" style="color:#185FA5">'+d.me+"</a>":"";
+  var content='<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">'
+    +'<div class="dav">'+ini2+"</div>"
+    +'<div><div style="font-size:15px;font-weight:500">'+d.nome+"</div>"
+    +'<div style="font-size:11px;color:var(--text2)">'+d.ens+" &middot; "+d.ano+" &middot; "+sitBadge+"</div>"
+    +diagBadge+"</div></div>"
+    +'<div class="ds"><div class="dst">Turma &amp; Horário</div>'
+    +fieldRow("Agrupada",d.agr)+fieldRow("Período",d.per)+fieldRow("Horário",d.hor)+(d.ext?fieldRow("Extracurricular",d.ext):"")+"</div>"
+    +'<div class="ds"><div class="dst">Dados pessoais</div>'
+    +fieldRow("Nascimento",d.nasc)+fieldRow("RA",d.ra)+fieldRow("CPF",d.cpf)
+    +(d.email?fieldRow("E-mail",emailLink):"")+(d.tel?fieldRow("Telefone",d.tel):"")+"</div>";
+  if(d.logr){
+    content+='<div class="ds"><div class="dst">Endereço</div>'
+      +fieldRow("Logradouro",d.logr+", "+d.num)
+      +fieldRow("Bairro",(d.bairro||"")+(d.cidade?" — "+d.cidade+"/"+d.est:""))
+      +fieldRow("CEP",d.cep)+"</div>";
+  }
+  content+='<div class="ds"><div class="dst">Responsáveis</div>'
+    +(d.mn?fieldRow("Mãe",d.mn):"")
+    +(d.mt?fieldRow("Tel. mãe",d.mt)+waBtns:"")
+    +(d.me?fieldRow("Email mãe",maeEmail):"")
+    +(d.pn?fieldRow("Pai",d.pn):"")+(d.pt?fieldRow("Tel. pai",d.pt):"")+(d.pe?fieldRow("Email pai",d.pe):"")+"</div>"
+    +'<div class="ds"><div class="dst">Matrícula</div>'
+    +(d.dm?fieldRow("Data matrícula",d.dm):"")+(d.ck?fieldRow("Como conheceu",d.ck):"")+(d.dov?fieldRow("Escola anterior",d.dov):"")+"</div>"
+    +'<div class="ds"><div class="dst">Documentação</div>'
+    +'<div class="dr"><span class="dl">Ficha cad.</span>'+docBadge(d.ficha)+"</div>"
+    +'<div class="dr"><span class="dl">Doc. Drive</span>'+docBadge(d.drive)+"</div>"
+    +'<div class="dr"><span class="dl">Contrato</span>'+docBadge(d.cont)+"</div>"
+    +'<div class="dr"><span class="dl">Dir. Imagem</span>'+imgBadge(d.di)+"</div>"
+    +'<div class="dr"><span class="dl">Sec. Digital</span>'+docBadge(d.sd)+"</div></div>";
+  document.getElementById("dc").innerHTML=content;
+  document.getElementById("dp").classList.add("open");
+  document.getElementById("ov").classList.add("open");
+}
+function closeDetail(){
+  document.getElementById("dp").classList.remove("open");
+  document.getElementById("ov").classList.remove("open");
+}
+
+// EXPORT / PRINT
+function exportCSV(){
+  var data=filtered.length&&filtered.length<D.length?filtered:D;
+  var rows=data.map(function(d){return [d.nome,d.sit,d.ens,d.ano,d.per,d.nasc,d.ra,d.mt,d.me,d.bairro,d.cidade,d.ficha,d.drive,d.cont,d.di].map(function(v){return'"'+(v||"").replace(/"/g,'""')+'"';}).join(",");});
+  dl(["Nome,Status,Ensino,Ano,Período,Nascimento,RA,Tel. Mãe,Email Mãe,Bairro,Cidade,Ficha,Drive,Contrato,Dir. Imagem"].concat(rows).join("\n"),"alunos_aguai.csv");
+}
+function printList(){
+  var data=filtered.length&&filtered.length<D.length?filtered:D;
+  var w=window.open("","_blank");
+  var rows=data.map(function(d,i){return "<tr><td>"+(i+1)+"</td><td>"+d.nome+"</td><td>"+d.ens+"</td><td>"+d.ano+"</td><td>"+d.per+"</td><td>"+(d.nasc||"—")+"</td><td>"+(d.mt||"—")+"</td><td>"+d.sit+"</td></tr>";}).join("");
+  w.document.write('<!DOCTYPE html><html><head><title>Alunos — Escola Aguaí</title><style>body{font-family:Arial,sans-serif;font-size:11px;padding:16px}h1{font-size:14px;margin-bottom:6px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:5px 7px}th{background:#f5f5f5;font-weight:600}tr:nth-child(even){background:#fafafa}</style></head><body><h1>Escola Aguaí — Lista de Alunos ('+data.length+")</h1><p style=\"color:#666;margin-bottom:10px\">Gerado: "+new Date().toLocaleDateString("pt-BR")+"</p><table><thead><tr><th>#</th><th>Nome</th><th>Segmento</th><th>Ano</th><th>Período</th><th>Nascimento</th><th>Tel. Mãe</th><th>Status</th></tr></thead><tbody>"+rows+"</tbody></table></body></html>");
+  w.document.close();w.focus();setTimeout(function(){w.print();},500);
+}
+
+// INIT
+initPainel();
+initPills();
+filterAlunos();
+initMonths();
+renderInclusao();
+renderTurmas();
+renderMetas();
+filterContatos();
+renderContatos();
+initBusca();
+
+</script>
+</body>
+</html>
